@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'AutoSync' target in the 'AutoSync' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
