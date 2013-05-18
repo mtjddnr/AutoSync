@@ -14,11 +14,16 @@
 #define SET_SYNCTRACKS @"setting.SyncTracks"
 #define SET_SYNCDELETEMISSINGFILE @"setting.SyncDeleteMissingFile"
 #define SET_SYNCPLAYLISTS @"setting.SyncPlaylists"
+#define LOGKEY @"Logs"
 
 @implementation AppDelegate {
     NSStatusItem *_statusItem;
     
     BOOL _syncing;
+
+    NSMutableArray *_logs;
+    
+    BOOL _needSync;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -33,6 +38,12 @@
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:SET_SYNCPLAYLISTS];
     } else {
         self.menuMusicRoot.title = self.rootPath;
+        NSArray *logs = [[NSUserDefaults standardUserDefaults] objectForKey:LOGKEY];
+        if (logs != nil) {
+            _logs = [NSMutableArray arrayWithArray:logs];
+            
+            [self updateLogs];
+        }
     }
     
     self.menuSettingSyncTracks.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS] ? 1 : 0;
@@ -139,7 +150,9 @@
 }
 
 - (void)onFSEvent:(NSNotification *)noti {
-    
+    NSArray *eventPaths = noti.userInfo[FSEventDidReceiveNotificationEventPathsKey];
+    NSLog(@"%@", eventPaths);
+    _needSync = YES;
     [self doSync];
 }
 
@@ -151,6 +164,7 @@
     
     if (_syncing) return;
     _syncing = YES;
+    _needSync = NO;
     
     _statusItem.title = NSLocalizedString(@"Syncing...",@"");
     [self.menuSetting setEnabled:NO];
@@ -159,9 +173,33 @@
     BOOL syncDelete = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE];
     BOOL syncPlaylist = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS];
     
+    self.menuRecentDate.title = @"동기화중...";
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         
         iTunesConnection *iTunes = [[iTunesConnection alloc] init];
+        iTunes.onAddTrackEvent = ^(NSString *filePath) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSString *path = [filePath substringFromIndex:[_rootPath length]];
+                [self log:[NSString stringWithFormat:@"Add %@", path]];
+            });
+        };
+        iTunes.onDeleteTrackEvent = ^(NSString *filePath) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSString *path = [filePath substringFromIndex:[_rootPath length]];
+                [self log:[NSString stringWithFormat:@"Del %@", path]];
+            });
+        };
+        iTunes.onAddPlaylistEvent = ^(NSString *path) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self log:[NSString stringWithFormat:@"+ %@", path]];
+            });
+        };
+        iTunes.onDeletePlaylistEvent = ^(NSString *path) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self log:[NSString stringWithFormat:@"- %@", path]];
+            });
+        };
         
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         [queue addOperationWithBlock:^{
@@ -255,9 +293,73 @@
             _syncing = NO;
             _statusItem.title = NSLocalizedString(@"AutoSync",@"");
             [self.menuSetting setEnabled:YES];
+            
+            NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+            [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+            [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+            
+            self.menuRecentDate.title = [dateFormatter stringFromDate:[NSDate date]];
+            
+            self.menuInfoSongs.title = [NSString stringWithFormat:@"%i Songs", (int)iTunes.libTrackCount];
+            self.menuInfoPlaylists.title = [NSString stringWithFormat:@"%i Playlists", (int)[[iTunes.libPlaylists allKeys] count]];
+            
+            if (_needSync) {
+                [self doSync];
+            }
         });
         
     });
+}
+
+#define MAX_LOG_DISPLAY_COUNT 5
+#define MAX_LOG_COUNT 50
+- (void)log:(NSString *)message {
+    
+    if (_logs == nil) _logs = [[NSMutableArray alloc] initWithCapacity:MAX_LOG_COUNT];
+    
+    
+    [_logs insertObject:message atIndex:0];
+    
+    if ([_logs count] > MAX_LOG_COUNT) {
+        [_logs removeObjectsInRange:NSMakeRange(MAX_LOG_COUNT, [_logs count] - MAX_LOG_COUNT)];
+    }
+    [self updateLogs];
+}
+- (void)updateLogs {
+
+    BOOL moreHidden = ([_logs count] <= MAX_LOG_DISPLAY_COUNT);
+    
+    [self.menuLogEndSeparator setHidden:([_logs count] == 0)];
+    [self.menuLogMore setHidden:moreHidden];
+    //Display Log
+    NSInteger seperatorIndex = [self.menu indexOfItem:self.menuLogSeparator];
+    __block NSInteger endIndex = [self.menu indexOfItem:self.menuLogMore];
+    
+    [_logs enumerateObjectsUsingBlock:^(NSString *message, NSUInteger idx, BOOL *stop) {
+        if (idx < MAX_LOG_DISPLAY_COUNT) {
+            NSInteger index = seperatorIndex + idx + 1;
+            if (index >= endIndex) {
+                NSMenuItem *newMenuItem = [[NSMenuItem alloc] init];
+                [self.menu insertItem:newMenuItem atIndex:index];
+                endIndex++;
+            }
+            NSMenuItem *menuItem = [self.menu itemAtIndex:index];
+            [menuItem setEnabled:NO];
+            menuItem.title = message;
+        } else {
+            NSInteger index = idx - MAX_LOG_DISPLAY_COUNT;
+            if (index >= [self.menuLogMoreMenu numberOfItems]) {
+                NSMenuItem *newMenuItem = [[NSMenuItem alloc] init];
+                [self.menuLogMoreMenu addItem:newMenuItem];
+            }
+            NSMenuItem *menuItem = [self.menuLogMoreMenu itemAtIndex:index];
+            [menuItem setEnabled:NO];
+            menuItem.title = message;
+        }
+    }];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:_logs forKey:LOGKEY];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 @end

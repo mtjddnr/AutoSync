@@ -19,8 +19,8 @@
 - (IBAction)onSetting:(id)sender;
 
 
-@property (weak) IBOutlet NSMenuItem *menuRecentSeparator;
 @property (weak) IBOutlet NSMenuItem *menuRecentDate;
+
 
 @property (weak) IBOutlet NSMenuItem *menuSetting;
 @property (weak) IBOutlet NSMenuItem *menuSettingSyncTracks;
@@ -29,5 +29,14 @@
 - (IBAction)onSettingSyncTracks:(id)sender;
 - (IBAction)onSettingSyncPlaylists:(id)sender;
 - (IBAction)onSettingSyncDeleteMissingFile:(id)sender;
+
+@property (weak) IBOutlet NSMenuItem *menuInfoSongs;
+@property (weak) IBOutlet NSMenuItem *menuInfoPlaylists;
+
+
+@property (weak) IBOutlet NSMenuItem *menuLogSeparator;
+@property (weak) IBOutlet NSMenuItem *menuLogMore;
+@property (weak) IBOutlet NSMenu *menuLogMoreMenu;
+@property (weak) IBOutlet NSMenuItem *menuLogEndSeparator;
 
 @end

@@ -78,4 +78,9 @@
 
 - (void)synciTunesPlaylistTracks:(NSDictionary *)playlists;
 
+@property (nonatomic, copy) void(^onAddTrackEvent)(NSString *filePath);
+@property (nonatomic, copy) void(^onDeleteTrackEvent)(NSString *filePath);
+@property (nonatomic, copy) void(^onAddPlaylistEvent)(NSString *path);
+@property (nonatomic, copy) void(^onDeletePlaylistEvent)(NSString *path);
+
 @end

@@ -82,6 +82,10 @@
         [locations addObject:location];
         [remove addObject:itunesTrack];
         NSLog(@"Delete: %@", location);
+        
+        if (_onDeleteTrackEvent) {
+            _onDeleteTrackEvent(location);
+        }
     }];
     [_iTunesTracks removeObjectsInArray:remove];
     [_iTunesTracksById removeObjectsForKeys:persistentIDs];
@@ -246,12 +250,17 @@
     
     if ([currentFilesNotInFiles count] > 0) {
         [currentFilesNotInFiles enumerateObjectsUsingBlock:^(NSString *path, NSUInteger idx, BOOL *stop) {
+            if ([path rangeOfString:_rootPath options:NSCaseInsensitiveSearch].location != 0) return;
+            
             NSDictionary *track = _libTracksByLocation[path];
             NSString *persistentId = track[@"Persistent ID"];
             iTunesFileTrack *itunesTrack = _iTunesTracksById[persistentId];
             
             [itunesTrack delete];
             NSLog(@"Delete: %@", path);
+            if (_onDeleteTrackEvent) {
+                _onDeleteTrackEvent(path);
+            }
         }];
         
         modified = YES;
@@ -280,6 +289,9 @@
         [newFiles enumerateObjectsUsingBlock:^(NSString *path, NSUInteger idx, BOOL *stop) {
             [locations addObject:[NSURL fileURLWithPath:path]];
             NSLog(@"Add: %@", path);
+            if (_onAddTrackEvent) {
+                _onAddTrackEvent(path);
+            }
         }];
         
         [self.iTunes add:locations to:nil];
@@ -392,6 +404,9 @@
             NSLog(@"Delete: %@", path);
             [toDelete addObject:path];
             [playlist delete];
+            if (_onDeletePlaylistEvent) {
+                _onDeletePlaylistEvent(path);
+            }
         }
     }];
     
@@ -402,6 +417,9 @@
             NSLog(@"Delete: %@", path);
             [toDelete addObject:path];
             [folder delete];
+            if (_onDeletePlaylistEvent) {
+                _onDeletePlaylistEvent(path);
+            }
         }
     }];
     [_iTunesFolders removeObjectsForKeys:toDelete];
@@ -426,6 +444,9 @@
                 _iTunesFolders[buildPath] = playlist;
                 iTunesFolder = playlist;
                 NSLog(@"add %@", buildPath);
+                if (_onAddPlaylistEvent) {
+                    _onAddPlaylistEvent(buildPath);
+                }
             }
             parentFolder = iTunesFolder;
         }
@@ -450,6 +471,10 @@
             userPlaylist = playlist;
             
             NSLog(@"add %@", path);
+            
+            if (_onAddPlaylistEvent) {
+                _onAddPlaylistEvent(path);
+            }
         }
     }];
 }
