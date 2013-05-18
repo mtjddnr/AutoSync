@@ -58,8 +58,8 @@
 
 //트랙의 파일 경로 중에서 최상위 루트 폴더 위치를 찾아낸다.
 - (void)discoverRootPathFromLocations:(NSArray *)locations;
-@property (nonatomic, readonly) NSString *rootPath;
-@property (nonatomic, readonly) NSString *rootName;
+@property (nonatomic) NSString *rootPath;
+@property (nonatomic) NSString *rootName;
 
 //트랙 파일 경로에서 필요한 폴더 및 재생 목록 명단을 준비
 - (void)buildPlaylistAndFolderFromLibTracks:(NSDictionary *)libTracksByLocation rootPath:(NSString *)rootPath;

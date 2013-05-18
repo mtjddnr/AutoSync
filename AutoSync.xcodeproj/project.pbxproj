@@ -14,13 +14,16 @@
 		A5DFAAE717479BC800E66F87 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAAE617479BC800E66F87 /* AppDelegate.m */; };
 		A5DFAAEA17479BC800E66F87 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A5DFAAE817479BC800E66F87 /* MainMenu.xib */; };
 		A5DFAAF21747B67700E66F87 /* iTunesConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAAF11747B67700E66F87 /* iTunesConnection.m */; };
+		A5DFAAF41747B6F900E66F87 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A5DFAAF31747B6F900E66F87 /* ScriptingBridge.framework */; };
+		A5DFAAF81747FC2400E66F87 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A5DFAAF71747FC2400E66F87 /* CoreServices.framework */; };
+		A5DFAAFC1748000000E66F87 /* FSEventNotificationCenter.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAAFB1748000000E66F87 /* FSEventNotificationCenter.m */; };
+		A5DFAAFF174801D300E66F87 /* FSEventNotificationReceiver.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAAFE174801D300E66F87 /* FSEventNotificationReceiver.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A5DFAAD017479BC800E66F87 /* AutoSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A5DFAAD317479BC800E66F87 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		A5DFAAD617479BC800E66F87 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		A5DFAAD717479BC800E66F87 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		A5DFAAD817479BC800E66F87 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A5DFAADB17479BC800E66F87 /* AutoSync-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "AutoSync-Info.plist"; sourceTree = "<group>"; };
 		A5DFAADD17479BC800E66F87 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -32,6 +35,13 @@
 		A5DFAAE917479BC800E66F87 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A5DFAAF01747B67700E66F87 /* iTunesConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iTunesConnection.h; sourceTree = "<group>"; };
 		A5DFAAF11747B67700E66F87 /* iTunesConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iTunesConnection.m; sourceTree = "<group>"; };
+		A5DFAAF31747B6F900E66F87 /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
+		A5DFAAF51747B71A00E66F87 /* iTunes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iTunes.h; sourceTree = "<group>"; };
+		A5DFAAF71747FC2400E66F87 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		A5DFAAFA1748000000E66F87 /* FSEventNotificationCenter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEventNotificationCenter.h; sourceTree = "<group>"; };
+		A5DFAAFB1748000000E66F87 /* FSEventNotificationCenter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventNotificationCenter.m; sourceTree = "<group>"; };
+		A5DFAAFD174801D300E66F87 /* FSEventNotificationReceiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEventNotificationReceiver.h; sourceTree = "<group>"; };
+		A5DFAAFE174801D300E66F87 /* FSEventNotificationReceiver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventNotificationReceiver.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,6 +49,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5DFAAF81747FC2400E66F87 /* CoreServices.framework in Frameworks */,
+				A5DFAAF41747B6F900E66F87 /* ScriptingBridge.framework in Frameworks */,
 				A5DFAAD417479BC800E66F87 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -66,20 +78,13 @@
 		A5DFAAD217479BC800E66F87 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A5DFAAF71747FC2400E66F87 /* CoreServices.framework */,
+				A5DFAAD617479BC800E66F87 /* AppKit.framework */,
+				A5DFAAD817479BC800E66F87 /* Foundation.framework */,
+				A5DFAAF31747B6F900E66F87 /* ScriptingBridge.framework */,
 				A5DFAAD317479BC800E66F87 /* Cocoa.framework */,
-				A5DFAAD517479BC800E66F87 /* Other Frameworks */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		A5DFAAD517479BC800E66F87 /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				A5DFAAD617479BC800E66F87 /* AppKit.framework */,
-				A5DFAAD717479BC800E66F87 /* CoreData.framework */,
-				A5DFAAD817479BC800E66F87 /* Foundation.framework */,
-			);
-			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
 		A5DFAAD917479BC800E66F87 /* AutoSync */ = {
@@ -88,8 +93,8 @@
 				A5DFAAE517479BC800E66F87 /* AppDelegate.h */,
 				A5DFAAE617479BC800E66F87 /* AppDelegate.m */,
 				A5DFAAE817479BC800E66F87 /* MainMenu.xib */,
-				A5DFAAF01747B67700E66F87 /* iTunesConnection.h */,
-				A5DFAAF11747B67700E66F87 /* iTunesConnection.m */,
+				A5DFAAF61747B72100E66F87 /* iTunes */,
+				A5DFAAF91747FFC700E66F87 /* FSEvent */,
 				A5DFAADA17479BC800E66F87 /* Supporting Files */,
 			);
 			path = AutoSync;
@@ -105,6 +110,27 @@
 				A5DFAAE217479BC800E66F87 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		A5DFAAF61747B72100E66F87 /* iTunes */ = {
+			isa = PBXGroup;
+			children = (
+				A5DFAAF51747B71A00E66F87 /* iTunes.h */,
+				A5DFAAF01747B67700E66F87 /* iTunesConnection.h */,
+				A5DFAAF11747B67700E66F87 /* iTunesConnection.m */,
+			);
+			name = iTunes;
+			sourceTree = "<group>";
+		};
+		A5DFAAF91747FFC700E66F87 /* FSEvent */ = {
+			isa = PBXGroup;
+			children = (
+				A5DFAAFA1748000000E66F87 /* FSEventNotificationCenter.h */,
+				A5DFAAFB1748000000E66F87 /* FSEventNotificationCenter.m */,
+				A5DFAAFD174801D300E66F87 /* FSEventNotificationReceiver.h */,
+				A5DFAAFE174801D300E66F87 /* FSEventNotificationReceiver.m */,
+			);
+			name = FSEvent;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -174,6 +200,8 @@
 				A5DFAAE017479BC800E66F87 /* main.m in Sources */,
 				A5DFAAE717479BC800E66F87 /* AppDelegate.m in Sources */,
 				A5DFAAF21747B67700E66F87 /* iTunesConnection.m in Sources */,
+				A5DFAAFC1748000000E66F87 /* FSEventNotificationCenter.m in Sources */,
+				A5DFAAFF174801D300E66F87 /* FSEventNotificationReceiver.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
