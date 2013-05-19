@@ -425,14 +425,14 @@
         //_statusItem.title = NSLocalizedString(@"동기화중.",@"");
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
             while (_statusAnimating || (_statusAnimating == NO && _statusIndex != 0)) {
-                dispatch_sync(dispatch_get_main_queue(), ^{
+                dispatch_async(dispatch_get_main_queue(), ^{
                     
                     [_statusItem setImage:[NSImage imageNamed:[NSString stringWithFormat:@"StatusIcon_%02d", (int)_statusIndex]]];
                     
                     _statusIndex++;
                     _statusIndex %= StatusImageCount;
                 });
-                [NSThread sleepForTimeInterval:0.05];
+                [NSThread sleepForTimeInterval:0.08];
             }
             dispatch_sync(dispatch_get_main_queue(), ^{
                 //_statusItem.title = NSLocalizedString(@"AutoSync",@"");
