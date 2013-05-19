@@ -474,7 +474,7 @@
             [playlist moveTo:iTunesFolder];
             
             _iTunesUserPlaylists[path] = playlist;
-            userPlaylist = playlist;
+            //userPlaylist = playlist;
             
             NSLog(@"add %@", path);
             
