@@ -21,6 +21,7 @@
 
 @property (weak) IBOutlet NSMenuItem *menuRecentDate;
 
+@property (weak) IBOutlet NSMenuItem *menuSettingChangePath;
 
 @property (weak) IBOutlet NSMenuItem *menuSetting;
 @property (weak) IBOutlet NSMenuItem *menuSettingSyncTracks;

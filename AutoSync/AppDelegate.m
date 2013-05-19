@@ -26,6 +26,9 @@
     NSMutableArray *_logs;
     
     BOOL _needSync;
+    
+    BOOL _statusAnimating;
+    NSInteger _statusIndex;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -56,6 +59,7 @@
     self.menuSettingSyncDeleteMissingFile.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE] ? 1 : 0;
     self.menuSettingSyncPlaylists.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS] ? 1 : 0;
     self.menuSettingLaunchOnStart.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_LAUNCHONSTART] ? 1 : 0;
+    self.menuSettingOtherLog.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG] ? 1 : 0;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFSEvent:) name:FSEventDidReceiveNotification object:nil];
     
@@ -67,7 +71,8 @@
     
     _statusItem = [bar statusItemWithLength:NSVariableStatusItemLength];
     
-    [_statusItem setTitle:NSLocalizedString(@"AutoSync", @"")];
+    //[_statusItem setTitle:NSLocalizedString(@"AutoSync", @"")];
+    [_statusItem setImage:[NSImage imageNamed:@"StatusIcon"]];
     [_statusItem setHighlightMode:YES];
     [_statusItem setMenu:self.menu];
 }
@@ -191,8 +196,10 @@
     _syncing = YES;
     _needSync = NO;
     
-    _statusItem.title = NSLocalizedString(@"동기화중...",@"");
+    [self setStatus:YES];
+    
     //[self.menuSetting setEnabled:NO];
+    [self.menuSettingChangePath setEnabled:NO];
     [self.menuSync setHidden:YES];
     
     BOOL syncTrack = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS];
@@ -328,8 +335,9 @@
 
         dispatch_async(dispatch_get_main_queue(), ^{
             _syncing = NO;
-            _statusItem.title = NSLocalizedString(@"AutoSync",@"");
+            [self setStatus:NO];
             //[self.menuSetting setEnabled:YES];
+            [self.menuSettingChangePath setEnabled:YES];
             
             NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
             [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
@@ -405,8 +413,37 @@
 }
 
 - (IBAction)onMenuAbout:(id)sender {
-    
     [self.panelAbout makeKeyAndOrderFront:self];
+}
+
+#define StatusImageCount 18
+- (void)setStatus:(BOOL)syncing {
+    
+    if (syncing) {
+        _statusAnimating = YES;
+        _statusIndex = 0;
+        //_statusItem.title = NSLocalizedString(@"동기화중.",@"");
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+            while (_statusAnimating || (_statusAnimating == NO && _statusIndex != 0)) {
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    
+                    [_statusItem setImage:[NSImage imageNamed:[NSString stringWithFormat:@"StatusIcon_%02d", (int)_statusIndex]]];
+                    
+                    _statusIndex++;
+                    _statusIndex %= StatusImageCount;
+                });
+                [NSThread sleepForTimeInterval:0.05];
+            }
+            dispatch_sync(dispatch_get_main_queue(), ^{
+                //_statusItem.title = NSLocalizedString(@"AutoSync",@"");
+                [_statusItem setImage:[NSImage imageNamed:@"StatusIcon"]];
+            });
+        });
+    } else {
+        _statusAnimating = NO;
+    }
+    
     
 }
+
 @end
