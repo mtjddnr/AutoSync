@@ -49,4 +49,8 @@
 
 @property (weak) IBOutlet NSMenuItem *menuSync;
 - (IBAction)onMenuSync:(id)sender;
+
+- (IBAction)onMenuAbout:(id)sender;
+@property (weak) IBOutlet NSPanel *panelAbout;
+
 @end

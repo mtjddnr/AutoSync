@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A51B72571748CB6B00FB7F6D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A51B72591748CB6B00FB7F6D /* Localizable.strings */; };
+		A5DDFBFC1748DF9000243DA0 /* About.xib in Resources */ = {isa = PBXBuildFile; fileRef = A5DDFBFB1748DF9000243DA0 /* About.xib */; };
 		A5DFAAD417479BC800E66F87 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A5DFAAD317479BC800E66F87 /* Cocoa.framework */; };
 		A5DFAAE017479BC800E66F87 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAADF17479BC800E66F87 /* main.m */; };
 		A5DFAAE417479BC800E66F87 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A5DFAAE217479BC800E66F87 /* Credits.rtf */; };
@@ -26,6 +27,7 @@
 		A51B72661748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A5DDFBF71748D7D600243DA0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A5DDFBF81748D7E200243DA0 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		A5DDFBFB1748DF9000243DA0 /* About.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = About.xib; sourceTree = "<group>"; };
 		A5DFAAD017479BC800E66F87 /* AutoSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A5DFAAD317479BC800E66F87 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		A5DFAAD617479BC800E66F87 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -95,6 +97,7 @@
 			children = (
 				A5DFAAE517479BC800E66F87 /* AppDelegate.h */,
 				A5DFAAE617479BC800E66F87 /* AppDelegate.m */,
+				A5DDFBFB1748DF9000243DA0 /* About.xib */,
 				A5DFAAE817479BC800E66F87 /* MainMenu.xib */,
 				A5DFAAF61747B72100E66F87 /* iTunes */,
 				A5DFAAF91747FFC700E66F87 /* FSEvent */,
@@ -193,6 +196,7 @@
 				A5DFAAE417479BC800E66F87 /* Credits.rtf in Resources */,
 				A5DFAAEA17479BC800E66F87 /* MainMenu.xib in Resources */,
 				A51B72571748CB6B00FB7F6D /* Localizable.strings in Resources */,
+				A5DDFBFC1748DF9000243DA0 /* About.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

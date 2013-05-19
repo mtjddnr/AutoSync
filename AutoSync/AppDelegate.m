@@ -192,7 +192,7 @@
     _needSync = NO;
     
     _statusItem.title = NSLocalizedString(@"동기화중...",@"");
-    [self.menuSetting setEnabled:NO];
+    //[self.menuSetting setEnabled:NO];
     [self.menuSync setHidden:YES];
     
     BOOL syncTrack = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS];
@@ -329,7 +329,7 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             _syncing = NO;
             _statusItem.title = NSLocalizedString(@"AutoSync",@"");
-            [self.menuSetting setEnabled:YES];
+            //[self.menuSetting setEnabled:YES];
             
             NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
             [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
@@ -402,5 +402,11 @@
 
 - (IBAction)onMenuSync:(id)sender {
     [self doSync];
+}
+
+- (IBAction)onMenuAbout:(id)sender {
+    
+    [self.panelAbout makeKeyAndOrderFront:self];
+    
 }
 @end
