@@ -290,6 +290,7 @@
         [queue waitUntilAllOperationsAreFinished];
         
         if (syncTrack) {
+            onOtherEvent(@"Sync Tracks...");
             BOOL modified = [iTunes syncFiles:iTunes.files currentFiles:[iTunes.libTracksByLocation allKeys]];
             if (modified) {
                 onOtherEvent(@"Reloading Tracks...");

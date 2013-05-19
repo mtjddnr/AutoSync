@@ -250,6 +250,8 @@
     
     if ([currentFilesNotInFiles count] > 0) {
         [currentFilesNotInFiles enumerateObjectsUsingBlock:^(NSString *path, NSUInteger idx, BOOL *stop) {
+            
+            //루트 폴더에 소속되지 않은 노래 파일은 무시
             if ([path rangeOfString:_rootPath options:NSCaseInsensitiveSearch].location != 0) return;
             
             NSDictionary *track = _libTracksByLocation[path];
@@ -342,6 +344,10 @@
     NSMutableArray *folders = [NSMutableArray array];
     
     [libTracksByLocation enumerateKeysAndObjectsUsingBlock:^(NSString *path, NSDictionary *track, BOOL *stop) {
+        
+        //루트 폴더에 소속되지 않은 노래 파일은 무시
+        if ([path rangeOfString:_rootPath options:NSCaseInsensitiveSearch].location != 0) return;
+        
         NSString *playlistPath = [path stringByDeletingLastPathComponent];
         playlistPath = [playlistPath substringFromIndex:[[rootPath stringByDeletingLastPathComponent] length] +1];
         
