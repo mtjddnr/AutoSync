@@ -29,6 +29,10 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    NSLog(@"%@", [[NSLocale currentLocale] localeIdentifier]);
+    NSLog(@"%@", [NSBundle allBundles]);
+    NSLog(@"%@", [[NSBundle mainBundle] localizations]);
+    
     [self activateStatusMenu];
     
     self.rootPath = [[NSUserDefaults standardUserDefaults] stringForKey:ROOTPATH];
@@ -63,7 +67,7 @@
     
     _statusItem = [bar statusItemWithLength:NSVariableStatusItemLength];
     
-    [_statusItem setTitle:NSLocalizedString(@"AutoSync",@"")];
+    [_statusItem setTitle:NSLocalizedString(@"AutoSync", @"")];
     [_statusItem setHighlightMode:YES];
     [_statusItem setMenu:self.menu];
 }
@@ -73,7 +77,7 @@
 }
 
 - (void)discoverMusicRoot {
-    self.menuMusicRoot.title = @"준비중...";
+    self.menuMusicRoot.title = NSLocalizedString(@"준비중...", @"");
     [self.menuSetting setEnabled:NO];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         
@@ -92,7 +96,7 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            self.menuMusicRoot.title = self.rootPath == nil ? @"경로가 없습니다." : self.rootPath;
+            self.menuMusicRoot.title = self.rootPath == nil ? NSLocalizedString(@"경로가 없습니다.", @"") : self.rootPath;
             [[NSUserDefaults standardUserDefaults] setObject:self.rootPath forKey:ROOTPATH];
             [self.menuSetting setEnabled:YES];
         });
@@ -187,7 +191,7 @@
     _syncing = YES;
     _needSync = NO;
     
-    _statusItem.title = NSLocalizedString(@"Syncing...",@"");
+    _statusItem.title = NSLocalizedString(@"동기화중...",@"");
     [self.menuSetting setEnabled:NO];
     [self.menuSync setHidden:YES];
     
@@ -195,7 +199,7 @@
     BOOL syncDelete = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE];
     BOOL syncPlaylist = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS];
     
-    self.menuRecentDate.title = @"동기화중...";
+    self.menuRecentDate.title = NSLocalizedString(@"동기화중...", @"");
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         
@@ -203,23 +207,23 @@
         iTunes.onAddTrackEvent = ^(NSString *filePath) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 NSString *path = [filePath substringFromIndex:[_rootPath length]];
-                [self log:[NSString stringWithFormat:@"Add %@", path]];
+                [self log:[NSString stringWithFormat:NSLocalizedString(@"추가 %@", @""), path]];
             });
         };
         iTunes.onDeleteTrackEvent = ^(NSString *filePath) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 NSString *path = [filePath substringFromIndex:[_rootPath length]];
-                [self log:[NSString stringWithFormat:@"Del %@", path]];
+                [self log:[NSString stringWithFormat:NSLocalizedString(@"삭제 %@", @""), path]];
             });
         };
         iTunes.onAddPlaylistEvent = ^(NSString *path) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self log:[NSString stringWithFormat:@"+ %@", path]];
+                [self log:[NSString stringWithFormat:NSLocalizedString(@"+ %@", @""), path]];
             });
         };
         iTunes.onDeletePlaylistEvent = ^(NSString *path) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self log:[NSString stringWithFormat:@"- %@", path]];
+                [self log:[NSString stringWithFormat:NSLocalizedString(@"- %@", @""), path]];
             });
         };
         
@@ -333,8 +337,8 @@
             
             self.menuRecentDate.title = [dateFormatter stringFromDate:[NSDate date]];
             
-            self.menuInfoSongs.title = [NSString stringWithFormat:@"%i Songs", (int)iTunes.libTrackCount];
-            self.menuInfoPlaylists.title = [NSString stringWithFormat:@"%i Playlists", (int)[[iTunes.libPlaylists allKeys] count]];
+            self.menuInfoSongs.title = [NSString stringWithFormat:NSLocalizedString(@"%i 곡", @""), (int)iTunes.libTrackCount];
+            self.menuInfoPlaylists.title = [NSString stringWithFormat:NSLocalizedString(@"%i 목록", @""), (int)[[iTunes.libPlaylists allKeys] count]];
             [self.menuSync setHidden:NO];
             
             if (_needSync) {

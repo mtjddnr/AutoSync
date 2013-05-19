@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A51B72571748CB6B00FB7F6D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A51B72591748CB6B00FB7F6D /* Localizable.strings */; };
 		A5DFAAD417479BC800E66F87 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A5DFAAD317479BC800E66F87 /* Cocoa.framework */; };
-		A5DFAADE17479BC800E66F87 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A5DFAADC17479BC800E66F87 /* InfoPlist.strings */; };
 		A5DFAAE017479BC800E66F87 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAADF17479BC800E66F87 /* main.m */; };
 		A5DFAAE417479BC800E66F87 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = A5DFAAE217479BC800E66F87 /* Credits.rtf */; };
 		A5DFAAE717479BC800E66F87 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A5DFAAE617479BC800E66F87 /* AppDelegate.m */; };
@@ -21,18 +21,21 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A51B72641748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ko; path = ko.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		A51B72651748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = ko; path = ko.lproj/Credits.rtf; sourceTree = "<group>"; };
+		A51B72661748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A5DDFBF71748D7D600243DA0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A5DDFBF81748D7E200243DA0 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A5DFAAD017479BC800E66F87 /* AutoSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A5DFAAD317479BC800E66F87 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		A5DFAAD617479BC800E66F87 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		A5DFAAD817479BC800E66F87 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A5DFAADB17479BC800E66F87 /* AutoSync-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "AutoSync-Info.plist"; sourceTree = "<group>"; };
-		A5DFAADD17479BC800E66F87 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A5DFAADF17479BC800E66F87 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		A5DFAAE117479BC800E66F87 /* AutoSync-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoSync-Prefix.pch"; sourceTree = "<group>"; };
 		A5DFAAE317479BC800E66F87 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		A5DFAAE517479BC800E66F87 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		A5DFAAE617479BC800E66F87 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		A5DFAAE917479BC800E66F87 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A5DFAAF01747B67700E66F87 /* iTunesConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iTunesConnection.h; sourceTree = "<group>"; };
 		A5DFAAF11747B67700E66F87 /* iTunesConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iTunesConnection.m; sourceTree = "<group>"; };
 		A5DFAAF31747B6F900E66F87 /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
@@ -104,10 +107,10 @@
 			isa = PBXGroup;
 			children = (
 				A5DFAADB17479BC800E66F87 /* AutoSync-Info.plist */,
-				A5DFAADC17479BC800E66F87 /* InfoPlist.strings */,
 				A5DFAADF17479BC800E66F87 /* main.m */,
 				A5DFAAE117479BC800E66F87 /* AutoSync-Prefix.pch */,
 				A5DFAAE217479BC800E66F87 /* Credits.rtf */,
+				A51B72591748CB6B00FB7F6D /* Localizable.strings */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -168,6 +171,9 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				ko,
+				Base,
+				"ko-KR",
 			);
 			mainGroup = A5DFAAC717479BC800E66F87;
 			productRefGroup = A5DFAAD117479BC800E66F87 /* Products */;
@@ -184,9 +190,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A5DFAADE17479BC800E66F87 /* InfoPlist.strings in Resources */,
 				A5DFAAE417479BC800E66F87 /* Credits.rtf in Resources */,
 				A5DFAAEA17479BC800E66F87 /* MainMenu.xib in Resources */,
+				A51B72571748CB6B00FB7F6D /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,18 +214,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		A5DFAADC17479BC800E66F87 /* InfoPlist.strings */ = {
+		A51B72591748CB6B00FB7F6D /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				A5DFAADD17479BC800E66F87 /* en */,
+				A51B72661748D70300FB7F6D /* ko */,
+				A5DDFBF71748D7D600243DA0 /* en */,
 			);
-			name = InfoPlist.strings;
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 		A5DFAAE217479BC800E66F87 /* Credits.rtf */ = {
 			isa = PBXVariantGroup;
 			children = (
 				A5DFAAE317479BC800E66F87 /* en */,
+				A51B72651748D70300FB7F6D /* ko */,
 			);
 			name = Credits.rtf;
 			sourceTree = "<group>";
@@ -227,7 +235,8 @@
 		A5DFAAE817479BC800E66F87 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				A5DFAAE917479BC800E66F87 /* en */,
+				A51B72641748D70300FB7F6D /* ko */,
+				A5DDFBF81748D7E200243DA0 /* en */,
 			);
 			name = MainMenu.xib;
 			sourceTree = "<group>";
@@ -337,6 +346,7 @@
 				A5DFAAEF17479BC800E66F87 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

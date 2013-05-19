@@ -1,0 +1,20 @@
+/* 
+  File.strings
+  AutoSync
+
+  Created by 문성욱 on 13. 5. 19..
+  Copyright (c) 2013년 ML. All rights reserved.
+*/
+
+"AutoSync" = "AutoSync";
+"동기화중..." = "Syncing...";
+"준비중..." = "Working...";
+"경로가 없습니다." = "Cannot find location.";
+"추가 %@" = "Add %@";
+"삭제 %@" = "Del %@";
+
+"+ %@" = "+ %@";
+"- %@" = "- %@";
+
+"%i 곡" = "%i Songs";
+"%i 목록" = "%i Playlists";
