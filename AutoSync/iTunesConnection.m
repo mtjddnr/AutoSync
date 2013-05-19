@@ -8,7 +8,7 @@
 
 #import "iTunesConnection.h"
 
-@implementation iTunesConnection 
+@implementation iTunesConnection
 
 - (id)init {
     self = [super init];
@@ -76,7 +76,7 @@
     NSMutableArray *remove = [NSMutableArray array];
     [persistentIDs enumerateObjectsUsingBlock:^(NSString *persistentID, NSUInteger idx, BOOL *stop) {
         iTunesFileTrack *itunesTrack = _iTunesTracksById[persistentID];
-    
+        
         [itunesTrack delete];
         NSString *location = [[NSURL URLWithString:_libTracksById[persistentID][@"Location"]] path];
         [locations addObject:location];
@@ -330,7 +330,7 @@
     NSString *rootPath = [rootPathParts componentsJoinedByString:@"/"];
     
     NSString *rootName = [rootPath lastPathComponent];
-
+    
     _rootPath = rootPath;
     _rootName = rootName;
 }
@@ -481,8 +481,8 @@
 
 - (void)synciTunesPlaylistTracks:(NSDictionary *)playlists {
     
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-    [queue setMaxConcurrentOperationCount:5];
+    //NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    //[queue setMaxConcurrentOperationCount:5];
     
     [playlists enumerateKeysAndObjectsUsingBlock:^(NSString *path, NSMutableArray *tracks, BOOL *stop) {
         
@@ -490,72 +490,78 @@
         iTunesUserPlaylist *userPlaylist = _iTunesUserPlaylists[path];
         assert(userPlaylist != nil);
         
-        [queue addOperationWithBlock:^{
-            
-            //먼저 있으면 안되는 노래들 삭제
-            NSArray *currentTracks = [[userPlaylist tracks] get];
-            
-            
-            NSMutableDictionary *trackIds = [NSMutableDictionary dictionary];
-            NSMutableArray *trackLocations = [NSMutableArray array];
-            [tracks enumerateObjectsUsingBlock:^(NSDictionary *track, NSUInteger idx, BOOL *stop) {
-                trackIds[track[@"Persistent ID"]] = track;
-            }];
-            
-            __block int deleteCount = 0;
-            __block int deleteDupCount = 0;
-            __block int addCount = 0;
-            
-            //중복, 해당안되는 노래 제거
-            NSMutableSet *currentTrackIds = [NSMutableSet set];
-            [currentTracks enumerateObjectsUsingBlock:^(iTunesFileTrack *track, NSUInteger idx, BOOL *stop) {
-                NSString *pid = track.persistentID;
-                
-                if ([[trackIds allKeys] containsObject:pid] == NO) {
-                    //NSLog(@"%@ delete %@", _userPlaylist.name, track.name);
-                    deleteCount++;
-                    [track delete];
-                } else if ([currentTrackIds containsObject:pid]) {
-                    //중복
-                    //NSLog(@"%@ delete duplicate %@", _userPlaylist.name, track.name);
-                    deleteDupCount++;
-                    [track delete];
-                } else {
-                    assert(pid != nil);
-                    [currentTrackIds addObject:pid];
-                }
-            }];
-            
-            //새로 추가할 노래 목록 생성
-            [tracks enumerateObjectsUsingBlock:^(NSDictionary *track, NSUInteger idx, BOOL *stop) {
-                NSString *pid = track[@"Persistent ID"];
-                assert(pid != nil);
-                if ([currentTrackIds containsObject:pid]) return;
-                
-                assert(track[@"Location"] != nil);
-                //NSLog(@"%@ add %@", _userPlaylist.name, track[@"Name"]);
-                addCount++;
-                NSURL *location = [NSURL URLWithString:track[@"Location"]];
-                assert(location != nil);
-                [trackLocations addObject:location];
-            }];
-            
-            if ([trackLocations count] > 0) {
-                assert(trackLocations != nil);
-                assert(userPlaylist != nil);
-                [queue addOperationWithBlock:^{
-                    [self.iTunes add:trackLocations to:userPlaylist];
-                    NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
-                }];
-            } else if (deleteCount + deleteDupCount + addCount > 0) {
-                NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
-            }
-            
+        //[queue addOperationWithBlock:^{
+        
+        //먼저 있으면 안되는 노래들 삭제
+        NSArray *currentTracks = [[userPlaylist tracks] get];
+        
+        
+        NSMutableDictionary *trackIds = [NSMutableDictionary dictionary];
+        NSMutableArray *trackLocations = [NSMutableArray array];
+        [tracks enumerateObjectsUsingBlock:^(NSDictionary *track, NSUInteger idx, BOOL *stop) {
+            trackIds[track[@"Persistent ID"]] = track;
         }];
+        
+        __block int deleteCount = 0;
+        __block int deleteDupCount = 0;
+        __block int addCount = 0;
+        
+        //중복, 해당안되는 노래 제거
+        NSMutableSet *currentTrackIds = [NSMutableSet set];
+        [currentTracks enumerateObjectsUsingBlock:^(iTunesFileTrack *track, NSUInteger idx, BOOL *stop) {
+            NSString *pid = track.persistentID;
+            
+            if ([[trackIds allKeys] containsObject:pid] == NO) {
+                //NSLog(@"%@ delete %@", _userPlaylist.name, track.name);
+                deleteCount++;
+                [track delete];
+            } else if ([currentTrackIds containsObject:pid]) {
+                //중복
+                //NSLog(@"%@ delete duplicate %@", _userPlaylist.name, track.name);
+                deleteDupCount++;
+                [track delete];
+            } else {
+                assert(pid != nil);
+                [currentTrackIds addObject:pid];
+            }
+        }];
+        
+        //새로 추가할 노래 목록 생성
+        [tracks enumerateObjectsUsingBlock:^(NSDictionary *track, NSUInteger idx, BOOL *stop) {
+            NSString *pid = track[@"Persistent ID"];
+            assert(pid != nil);
+            if ([currentTrackIds containsObject:pid]) return;
+            
+            assert(track[@"Location"] != nil);
+            //NSLog(@"%@ add %@", _userPlaylist.name, track[@"Name"]);
+            addCount++;
+            NSURL *location = [NSURL URLWithString:track[@"Location"]];
+            assert(location != nil);
+            [trackLocations addObject:location];
+        }];
+        
+        if ([trackLocations count] > 0) {
+            assert(trackLocations != nil);
+            assert(userPlaylist != nil);
+            //[queue addOperationWithBlock:^{
+            [self.iTunes add:trackLocations to:userPlaylist];
+            if (_onOtherEvent) {
+                _onOtherEvent([NSString stringWithFormat:@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name]);
+            }
+            NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
+            //}];
+        } else if (deleteCount + deleteDupCount + addCount > 0) {
+            if (_onOtherEvent) {
+                _onOtherEvent([NSString stringWithFormat:@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name]);
+            }
+            NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
+        }
+        
+        //}];
         
     }];
     
-    [queue waitUntilAllOperationsAreFinished];
+    //[queue waitUntilAllOperationsAreFinished];
 }
 
 @end

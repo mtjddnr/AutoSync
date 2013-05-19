@@ -14,6 +14,8 @@
 #define SET_SYNCTRACKS @"setting.SyncTracks"
 #define SET_SYNCDELETEMISSINGFILE @"setting.SyncDeleteMissingFile"
 #define SET_SYNCPLAYLISTS @"setting.SyncPlaylists"
+#define SET_LAUNCHONSTART @"setting.LaunchOnStart"
+#define SET_OTHERLOG @"setting.OtherLog"
 #define LOGKEY @"Logs"
 
 @implementation AppDelegate {
@@ -49,6 +51,7 @@
     self.menuSettingSyncTracks.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS] ? 1 : 0;
     self.menuSettingSyncDeleteMissingFile.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE] ? 1 : 0;
     self.menuSettingSyncPlaylists.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS] ? 1 : 0;
+    self.menuSettingLaunchOnStart.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_LAUNCHONSTART] ? 1 : 0;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFSEvent:) name:FSEventDidReceiveNotification object:nil];
     
@@ -132,6 +135,24 @@
     self.menuSettingSyncDeleteMissingFile.state = newValue ? 1 : 0;
 }
 
+- (IBAction)onSettingLaunchOnStart:(id)sender {
+    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_LAUNCHONSTART];
+    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_LAUNCHONSTART];
+    self.menuSettingLaunchOnStart.state = newValue ? 1 : 0;
+    
+    if (newValue) {
+        [[NSApplication sharedApplication] enableRelaunchOnLogin];
+    } else {
+        [[NSApplication sharedApplication] disableRelaunchOnLogin];
+    }
+}
+
+- (IBAction)onSettingOtherLog:(id)sender {
+    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG];
+    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_OTHERLOG];
+    self.menuSettingOtherLog.state = newValue ? 1 : 0;
+}
+
 - (IBAction)onSettingSyncPlaylists:(id)sender {
     BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS];
     [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_SYNCPLAYLISTS];
@@ -168,6 +189,7 @@
     
     _statusItem.title = NSLocalizedString(@"Syncing...",@"");
     [self.menuSetting setEnabled:NO];
+    [self.menuSync setHidden:YES];
     
     BOOL syncTrack = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS];
     BOOL syncDelete = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE];
@@ -201,16 +223,27 @@
             });
         };
         
+        void(^onOtherEvent)(NSString *message) = ^(NSString *message) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSLog(@"%@", message);
+                if ([[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG]) {
+                    [self log:message];
+                }
+            });
+        };
+        iTunes.onOtherEvent = onOtherEvent;
+        
+        
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         [queue addOperationWithBlock:^{
-            NSLog(@"Start Load iTunes Tracks");
+            onOtherEvent(@"Start Load iTunes Tracks");
             [iTunes loadiTunesTracks];
-            NSLog(@"Done Load iTunes Tracks: %i", (int)[iTunes iTunesTrackCount]);
+            onOtherEvent([NSString stringWithFormat:@"Done Load iTunes Tracks: %i", (int)[iTunes iTunesTrackCount]]);
         }];
         [queue addOperationWithBlock:^{
-            NSLog(@"Start Load Library Plist Tracks");
+            onOtherEvent(@"Start Load Library Plist Tracks");
             [iTunes loadLibraryFile];
-            NSLog(@"Done Load Library Plist Tracks: %i", (int)[iTunes libTrackCount]);
+            onOtherEvent([NSString stringWithFormat:@"Done Load Library Plist Tracks: %i", (int)[iTunes libTrackCount]]);
         }];
         
         [queue waitUntilAllOperationsAreFinished];
@@ -220,26 +253,26 @@
         
         if (syncTrack) {
             [queue addOperationWithBlock:^{
-                NSLog(@"Searching Files");
+                onOtherEvent(@"Searching Files");
                 [iTunes searchFiles:iTunes.rootPath];
-                NSLog(@"Done Searching Files: %i", (int)[iTunes.files count]);
+                onOtherEvent([NSString stringWithFormat:@"Done Searching Files: %i", (int)[iTunes.files count]]);
             }];
         }
-        NSLog(@"recover Missing Location Tracks: %i", (int)[iTunes.libTracksByIdWithNoLocation count]);
+        onOtherEvent([NSString stringWithFormat:@"recover Missing Location Tracks: %i", (int)[iTunes.libTracksByIdWithNoLocation count]]);
         [iTunes recoverMissingLocationLibTracksFromiTunesTracks:iTunes.iTunesTracksById];
         
-        NSLog(@"Tracks: %i", (int)[iTunes iTunesTrackCount]);
+        onOtherEvent([NSString stringWithFormat:@"Tracks: %i", (int)[iTunes iTunesTrackCount]]);
         
         if (syncDelete) {
             NSArray *missingTrackIds = [iTunes findMissingFileLibTrackIds];
-            NSLog(@"File Missing Tracks: %i", (int)[missingTrackIds count]);
+            onOtherEvent([NSString stringWithFormat:@"File Missing Tracks: %i", (int)[missingTrackIds count]]);
             
             if ([missingTrackIds count] > 0) {
-                NSLog(@"Deleting Missing Tracks");
+                onOtherEvent(@"Deleting Missing Tracks");
                 [iTunes deleteTracks:missingTrackIds];
-                NSLog(@"Done Deleting Missing Tracks");
+                onOtherEvent(@"Done Deleting Missing Tracks");
                 
-                NSLog(@"Tracks: %i", (int)[iTunes iTunesTrackCount]);
+                onOtherEvent([NSString stringWithFormat:@"Tracks: %i", (int)[iTunes iTunesTrackCount]]);
             }
         }
         
@@ -248,7 +281,7 @@
         if (syncTrack) {
             BOOL modified = [iTunes syncFiles:iTunes.files currentFiles:[iTunes.libTracksByLocation allKeys]];
             if (modified) {
-                NSLog(@"Reloading Tracks...");
+                onOtherEvent(@"Reloading Tracks...");
                 [queue addOperationWithBlock:^{
                     [iTunes loadiTunesTracks];
                 }];
@@ -260,34 +293,34 @@
                 
                 [iTunes recoverMissingLocationLibTracksFromiTunesTracks:iTunes.iTunesTracksById];
                 
-                NSLog(@"Tracks: %i", (int)[iTunes iTunesTrackCount]);
+                onOtherEvent([NSString stringWithFormat:@"Tracks: %i", (int)[iTunes iTunesTrackCount]]);
             }
         }
         
         if (syncPlaylist) {
             [queue addOperationWithBlock:^{
-                NSLog(@"Build Playlists");
+                onOtherEvent(@"Build Playlists");
                 [iTunes buildPlaylistAndFolderFromLibTracks:iTunes.libTracksByLocation rootPath:iTunes.rootPath];
-                NSLog(@"Done Build Playlists: %i Folders, %i Playlists", (int)[iTunes.libFolders count], (int)[iTunes.libPlaylists count]);
+                onOtherEvent([NSString stringWithFormat:@"Done Build Playlists: %i Folders, %i Playlists", (int)[iTunes.libFolders count], (int)[iTunes.libPlaylists count]]);
             }];
             
             [queue addOperationWithBlock:^{
-                NSLog(@"Load iTunes Playlists");
+                onOtherEvent(@"Load iTunes Playlists");
                 [iTunes loadiTunesPlaylists];
-                NSLog(@"Done Load iTunes Playlists: %i Folders, %i Playlists", (int)[iTunes.iTunesFolders count], (int)[iTunes.iTunesUserPlaylists count]);
+                onOtherEvent([NSString stringWithFormat:@"Done Load iTunes Playlists: %i Folders, %i Playlists", (int)[iTunes.iTunesFolders count], (int)[iTunes.iTunesUserPlaylists count]]);
             }];
             
             [queue waitUntilAllOperationsAreFinished];
             
-            NSLog(@"Sync playlist structure");
+            onOtherEvent(@"Sync playlist structure");
             [iTunes synciTunesFolder:iTunes.libFolders AndPlaylist:[iTunes.libPlaylists allKeys]];
-            NSLog(@"Done Playlists: %i Folders, %i Playlists", (int)[iTunes.iTunesFolders count], (int)[iTunes.iTunesUserPlaylists count]);
+            onOtherEvent([NSString stringWithFormat:@"Done Playlists: %i Folders, %i Playlists", (int)[iTunes.iTunesFolders count], (int)[iTunes.iTunesUserPlaylists count]]);
             
-            NSLog(@"Sync playlist Tracks");
+            onOtherEvent(@"Sync playlist Tracks");
             [iTunes synciTunesPlaylistTracks:iTunes.libPlaylists];
             
         }
-        NSLog(@"Done");
+        onOtherEvent(@"Done");
 
         dispatch_async(dispatch_get_main_queue(), ^{
             _syncing = NO;
@@ -302,6 +335,7 @@
             
             self.menuInfoSongs.title = [NSString stringWithFormat:@"%i Songs", (int)iTunes.libTrackCount];
             self.menuInfoPlaylists.title = [NSString stringWithFormat:@"%i Playlists", (int)[[iTunes.libPlaylists allKeys] count]];
+            [self.menuSync setHidden:NO];
             
             if (_needSync) {
                 [self doSync];
@@ -362,4 +396,7 @@
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+- (IBAction)onMenuSync:(id)sender {
+    [self doSync];
+}
 @end

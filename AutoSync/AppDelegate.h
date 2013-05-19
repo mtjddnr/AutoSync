@@ -26,9 +26,15 @@
 @property (weak) IBOutlet NSMenuItem *menuSettingSyncTracks;
 @property (weak) IBOutlet NSMenuItem *menuSettingSyncDeleteMissingFile;
 @property (weak) IBOutlet NSMenuItem *menuSettingSyncPlaylists;
+@property (weak) IBOutlet NSMenuItem *menuSettingLaunchOnStart;
+@property (weak) IBOutlet NSMenuItem *menuSettingOtherLog;
+
 - (IBAction)onSettingSyncTracks:(id)sender;
 - (IBAction)onSettingSyncPlaylists:(id)sender;
 - (IBAction)onSettingSyncDeleteMissingFile:(id)sender;
+- (IBAction)onSettingLaunchOnStart:(id)sender;
+- (IBAction)onSettingOtherLog:(id)sender;
+
 
 @property (weak) IBOutlet NSMenuItem *menuInfoSongs;
 @property (weak) IBOutlet NSMenuItem *menuInfoPlaylists;
@@ -39,4 +45,8 @@
 @property (weak) IBOutlet NSMenu *menuLogMoreMenu;
 @property (weak) IBOutlet NSMenuItem *menuLogEndSeparator;
 
+@property (weak) IBOutlet NSMenuItem *menuQuit;
+
+@property (weak) IBOutlet NSMenuItem *menuSync;
+- (IBAction)onMenuSync:(id)sender;
 @end
