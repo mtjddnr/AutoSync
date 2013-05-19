@@ -34,7 +34,6 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    [[NSUserDefaults standardUserDefaults] removeObjectForKey:ROOTPATH];
     
     self.rootPath = [[NSUserDefaults standardUserDefaults] stringForKey:ROOTPATH];
     if (self.rootPath == nil) {
@@ -79,6 +78,7 @@
 }
 
 - (IBAction)onQuit:(id)sender {
+    [[NSUserDefaults standardUserDefaults] synchronize];
     exit(0);
 }
 
@@ -518,6 +518,12 @@
     [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncPlaylist.state != 0) forKey:SET_SYNCPLAYLISTS];
     [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxLaunchOnStart.state != 0) forKey:SET_LAUNCHONSTART];
 
+    if (self.checkBoxLaunchOnStart.state != 0) {
+        [[NSApplication sharedApplication] enableRelaunchOnLogin];
+    }
+    
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
     [self setupApplication];
 }
 

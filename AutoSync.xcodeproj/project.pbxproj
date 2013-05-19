@@ -68,9 +68,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A51B72641748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ko; path = ko.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A51B72651748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = ko; path = ko.lproj/Credits.rtf; sourceTree = "<group>"; };
-		A51B72661748D70300FB7F6D /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A55277E1174983FB006CFF54 /* Example1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Example1.png; sourceTree = "<group>"; };
 		A55277E2174983FB006CFF54 /* Example1@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Example1@2x.png"; sourceTree = "<group>"; };
 		A55277E517498665006CFF54 /* Example2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Example2.png; sourceTree = "<group>"; };
@@ -139,6 +137,8 @@
 		A5DFAAFB1748000000E66F87 /* FSEventNotificationCenter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventNotificationCenter.m; sourceTree = "<group>"; };
 		A5DFAAFD174801D300E66F87 /* FSEventNotificationReceiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEventNotificationReceiver.h; sourceTree = "<group>"; };
 		A5DFAAFE174801D300E66F87 /* FSEventNotificationReceiver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventNotificationReceiver.m; sourceTree = "<group>"; };
+		A5E61064174995F20092BE1A /* ko */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = ko; path = ko.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		A5E61065174996040092BE1A /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -413,8 +413,8 @@
 		A51B72591748CB6B00FB7F6D /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				A51B72661748D70300FB7F6D /* ko */,
 				A5DDFBF71748D7D600243DA0 /* en */,
+				A5E61065174996040092BE1A /* ko */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -431,8 +431,8 @@
 		A5DFAAE817479BC800E66F87 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				A51B72641748D70300FB7F6D /* ko */,
 				A5DDFBF81748D7E200243DA0 /* en */,
+				A5E61064174995F20092BE1A /* ko */,
 			);
 			name = MainMenu.xib;
 			sourceTree = "<group>";
