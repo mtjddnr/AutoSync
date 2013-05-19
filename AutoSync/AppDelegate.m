@@ -518,6 +518,7 @@
     [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncPlaylist.state != 0) forKey:SET_SYNCPLAYLISTS];
     [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxLaunchOnStart.state != 0) forKey:SET_LAUNCHONSTART];
 
+    [NSApp disableRelaunchOnLogin];
     if (self.checkBoxLaunchOnStart.state != 0) {
         [[NSApplication sharedApplication] enableRelaunchOnLogin];
     }
