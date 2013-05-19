@@ -18,3 +18,6 @@
 
 "%i 곡" = "%i Songs";
 "%i 목록" = "%i Playlists";
+
+"경로 찾는중..." = "Looking for Music path...";
+"경로를 찾을수 없습니다" = "Cannot find path";

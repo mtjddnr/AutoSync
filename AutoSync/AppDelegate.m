@@ -29,32 +29,33 @@
     
     BOOL _statusAnimating;
     NSInteger _statusIndex;
+    
+    BOOL _firstRootFolderReady;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    NSLog(@"%@", [[NSLocale currentLocale] localeIdentifier]);
-    NSLog(@"%@", [NSBundle allBundles]);
-    NSLog(@"%@", [[NSBundle mainBundle] localizations]);
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:ROOTPATH];
+    
+    self.rootPath = [[NSUserDefaults standardUserDefaults] stringForKey:ROOTPATH];
+    if (self.rootPath == nil) {
+        [self firstUse];
+    } else {
+        [self setupApplication];
+    }
+}
+- (void)setupApplication {
+    assert(self.rootPath != nil);
     
     [self activateStatusMenu];
     
-    self.rootPath = [[NSUserDefaults standardUserDefaults] stringForKey:ROOTPATH];
-    
-    if (self.rootPath == nil) {
-        [self discoverMusicRoot];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:SET_SYNCTRACKS];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:SET_SYNCDELETEMISSINGFILE];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:SET_SYNCPLAYLISTS];
-    } else {
-        self.menuMusicRoot.title = self.rootPath;
-        NSArray *logs = [[NSUserDefaults standardUserDefaults] objectForKey:LOGKEY];
-        if (logs != nil) {
-            _logs = [NSMutableArray arrayWithArray:logs];
-            
-            [self updateLogs];
-        }
+    self.menuMusicRoot.title = self.rootPath;
+    NSArray *logs = [[NSUserDefaults standardUserDefaults] objectForKey:LOGKEY];
+    if (logs != nil) {
+        _logs = [NSMutableArray arrayWithArray:logs];
+        
+        [self updateLogs];
     }
-    
+
     self.menuSettingSyncTracks.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS] ? 1 : 0;
     self.menuSettingSyncDeleteMissingFile.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE] ? 1 : 0;
     self.menuSettingSyncPlaylists.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS] ? 1 : 0;
@@ -81,34 +82,6 @@
     exit(0);
 }
 
-- (void)discoverMusicRoot {
-    self.menuMusicRoot.title = NSLocalizedString(@"준비중...", @"");
-    [self.menuSetting setEnabled:NO];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        
-        [NSThread sleepForTimeInterval:5];
-        
-        iTunesConnection *iTunes = [[iTunesConnection alloc] init];
-        [iTunes loadLibraryFile];
-        
-        NSArray *locations = [iTunes.libTracksByLocation allKeys];
-        if ([locations count] > 0) {
-            [iTunes discoverRootPathFromLocations:locations];
-            self.rootPath = iTunes.rootPath;
-        } else {
-            self.rootPath = nil;
-        }
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            
-            self.menuMusicRoot.title = self.rootPath == nil ? NSLocalizedString(@"경로가 없습니다.", @"") : self.rootPath;
-            [[NSUserDefaults standardUserDefaults] setObject:self.rootPath forKey:ROOTPATH];
-            [self.menuSetting setEnabled:YES];
-        });
-        
-    });
-   
-}
 - (IBAction)onSetting:(id)sender {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setCanChooseDirectories:YES];
@@ -443,8 +416,110 @@
     } else {
         _statusAnimating = NO;
     }
+}
+
+- (void)firstUse {
+    [self.windowFirstUse makeKeyAndOrderFront:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowWillClose:) name:NSWindowWillCloseNotification object:nil];
     
+    [self discoverMusicRoot];
+    
+    [self.buttonDone setEnabled:NO];
+}
+
+- (void)discoverMusicRoot {
+    self.popUpButtonMenuRootPath.title = NSLocalizedString(@"경로 찾는중...", @"");
+    [self.popUpButtonMenuSelectOtherRootPath setEnabled:NO];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        
+        iTunesConnection *iTunes = [[iTunesConnection alloc] init];
+        [iTunes loadLibraryFile];
+        
+        NSArray *locations = [iTunes.libTracksByLocation allKeys];
+        if ([locations count] > 0) {
+            [iTunes discoverRootPathFromLocations:locations];
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            NSString *rootPath = iTunes.rootPath;
+            
+            if (rootPath == nil) {
+                self.popUpButtonMenuRootPath.title = NSLocalizedString(@"경로를 찾을수 없습니다", @"");
+                _firstRootFolderReady = NO;
+            } else {
+                self.popUpButtonMenuRootPath.title = rootPath;
+                _firstRootFolderReady = YES;
+            }
+            [self.popUpButtonMenuSelectOtherRootPath setEnabled:YES];
+            [self updateDoneButtonStatus];
+        });
+        
+    });
+}
+
+- (void)windowWillClose:(NSNotification *)notification {
+    exit(0);
+}
+- (IBAction)onPopUpButtonMenuSelectOtherRootPath:(id)sender {
+    [self.popUpButtonSelectMusicFolder selectItemAtIndex:0];
+    
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    [panel setCanChooseDirectories:YES];
+    [panel setCanChooseFiles:NO];
+    
+    [panel beginSheetModalForWindow:self.windowFirstUse
+                  completionHandler:^(NSInteger result){
+        if (result == NSFileHandlingPanelOKButton) {
+            NSString *path = [panel.URL path];
+            
+            NSFileManager *fs = [NSFileManager defaultManager];
+            BOOL isDir = NO;
+            if ([fs fileExistsAtPath:path isDirectory:&isDir] && isDir) {
+                _firstRootFolderReady = YES;
+                self.popUpButtonMenuRootPath.title = path;
+            } else {
+                NSAlert *alert = [NSAlert alertWithMessageText:@"폴더가 아닙니다." defaultButton:@"확인" alternateButton:nil otherButton:nil informativeTextWithFormat:@""];
+                [alert runModal];
+            }
+        }
+    }];
     
 }
+
+- (IBAction)onChangeCheck:(id)sender {
+    [self updateDoneButtonStatus];
+}
+
+- (void)updateDoneButtonStatus {
+    if (_firstRootFolderReady == NO) {
+        [self.buttonDone setEnabled:NO];
+        return;
+    }
+    
+    if (self.checkBoxSyncFiles.state == 0
+        && self.checkBoxSyncPlaylist.state == 0
+        && self.checkBoxSyncDelete.state == 0) {
+        [self.buttonDone setEnabled:NO];
+        return;
+    }
+    
+    [self.buttonDone setEnabled:YES];
+}
+- (IBAction)onButtonDone:(id)sender {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    [self.windowFirstUse close];
+    
+    self.rootPath = self.popUpButtonMenuRootPath.title;
+    [[NSUserDefaults standardUserDefaults] setObject:self.rootPath forKey:ROOTPATH];
+    
+    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncFiles.state != 0) forKey:SET_SYNCTRACKS];
+    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncDelete.state != 0) forKey:SET_SYNCDELETEMISSINGFILE];
+    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncPlaylist.state != 0) forKey:SET_SYNCPLAYLISTS];
+    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxLaunchOnStart.state != 0) forKey:SET_LAUNCHONSTART];
+
+    [self setupApplication];
+}
+
 
 @end

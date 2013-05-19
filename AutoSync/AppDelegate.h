@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 
 @property (nonatomic) NSString *rootPath;
 
@@ -53,5 +53,31 @@
 
 - (IBAction)onMenuAbout:(id)sender;
 @property (weak) IBOutlet NSPanel *panelAbout;
+
+
+@property (unsafe_unretained) IBOutlet NSWindow *windowFirstUse;
+
+
+@property (weak) IBOutlet NSPopUpButton *popUpButtonSelectMusicFolder;
+@property (weak) IBOutlet NSMenuItem *popUpButtonMenuRootPath;
+@property (weak) IBOutlet NSMenuItem *popUpButtonMenuSelectOtherRootPath;
+- (IBAction)onPopUpButtonMenuSelectOtherRootPath:(id)sender;
+
+@property (weak) IBOutlet NSButton *checkBoxSyncFiles;
+@property (weak) IBOutlet NSButton *checkBoxSyncDelete;
+@property (weak) IBOutlet NSButton *checkBoxSyncPlaylist;
+@property (weak) IBOutlet NSButton *checkBoxLaunchOnStart;
+
+- (IBAction)onChangeCheck:(id)sender;
+
+
+@property (weak) IBOutlet NSButton *buttonDone;
+- (IBAction)onButtonDone:(id)sender;
+
+
+
+
+
+
 
 @end
