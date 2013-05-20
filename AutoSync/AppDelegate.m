@@ -34,6 +34,7 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    [self.labelAboutVersion setStringValue:[[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"]];
     
     self.rootPath = [[NSUserDefaults standardUserDefaults] stringForKey:ROOTPATH];
     if (self.rootPath == nil) {
@@ -387,7 +388,7 @@
 }
 
 - (IBAction)onMenuAbout:(id)sender {
-    [self.panelAbout makeKeyAndOrderFront:self];
+    [self.windowAbout makeKeyAndOrderFront:nil];
 }
 
 #define StatusImageCount 18

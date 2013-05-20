@@ -52,7 +52,8 @@
 - (IBAction)onMenuSync:(id)sender;
 
 - (IBAction)onMenuAbout:(id)sender;
-@property (weak) IBOutlet NSPanel *panelAbout;
+@property (unsafe_unretained) IBOutlet NSWindow *windowAbout;
+@property (weak) IBOutlet NSTextField *labelAboutVersion;
 
 
 @property (unsafe_unretained) IBOutlet NSWindow *windowFirstUse;
