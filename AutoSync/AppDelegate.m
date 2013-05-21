@@ -232,6 +232,7 @@
         }];
         
         [queue waitUntilAllOperationsAreFinished];
+        if ([self breakIfNeedResync]) return;
         
         iTunes.rootPath = _rootPath;
         iTunes.rootName = [_rootPath lastPathComponent];
@@ -262,6 +263,7 @@
         }
         
         [queue waitUntilAllOperationsAreFinished];
+        if ([self breakIfNeedResync]) return;
         
         if (syncTrack) {
             onOtherEvent(@"Sync Tracks...");
@@ -281,6 +283,7 @@
                 
                 onOtherEvent([NSString stringWithFormat:@"Tracks: %i", (int)[iTunes iTunesTrackCount]]);
             }
+            if ([self breakIfNeedResync]) return;
         }
         
         if (syncPlaylist) {
@@ -330,6 +333,15 @@
         });
         
     });
+}
+
+- (BOOL)breakIfNeedResync {
+    if (_needSync == NO) return NO;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _syncing = NO;
+        [self doSync];
+    });
+    return YES;
 }
 
 #define MAX_LOG_DISPLAY_COUNT 5

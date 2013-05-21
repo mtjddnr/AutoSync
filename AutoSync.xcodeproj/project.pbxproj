@@ -155,7 +155,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A5DDFC001748F40700243DA0 /* Resources */ = {
+		A51269F8174A8B6D004DF10E /* First Use */ = {
 			isa = PBXGroup;
 			children = (
 				A55277E1174983FB006CFF54 /* Example1.png */,
@@ -164,7 +164,15 @@
 				A55277E617498665006CFF54 /* Example2@2x.png */,
 				A55277E717498665006CFF54 /* Example3.png */,
 				A55277E817498665006CFF54 /* Example3@2x.png */,
-				A5DDFC531749049E00243DA0 /* icon.icns */,
+			);
+			name = "First Use";
+			sourceTree = "<group>";
+		};
+		A51269F9174A8B7C004DF10E /* Status Bar Icon */ = {
+			isa = PBXGroup;
+			children = (
+				A5DDFC011748F40700243DA0 /* StatusIcon.png */,
+				A5DDFC031748F49000243DA0 /* StatusIcon@2x.png */,
 				A5DDFC051748FE1500243DA0 /* StatusIcon_00.png */,
 				A5DDFC061748FE1500243DA0 /* StatusIcon_00@2x.png */,
 				A5DDFC071748FE1500243DA0 /* StatusIcon_01.png */,
@@ -203,8 +211,27 @@
 				A5DDFC281748FE1500243DA0 /* StatusIcon_17@2x.png */,
 				A5DDFC291748FE1500243DA0 /* StatusIcon_18.png */,
 				A5DDFC2A1748FE1500243DA0 /* StatusIcon_18@2x.png */,
-				A5DDFC011748F40700243DA0 /* StatusIcon.png */,
-				A5DDFC031748F49000243DA0 /* StatusIcon@2x.png */,
+			);
+			name = "Status Bar Icon";
+			sourceTree = "<group>";
+		};
+		A51269FA174AEEA3004DF10E /* App Background */ = {
+			isa = PBXGroup;
+			children = (
+				A5DFAAE517479BC800E66F87 /* AppDelegate.h */,
+				A5DFAAE617479BC800E66F87 /* AppDelegate.m */,
+				A5DFAAF61747B72100E66F87 /* iTunes */,
+				A5DFAAF91747FFC700E66F87 /* FSEvent */,
+			);
+			name = "App Background";
+			sourceTree = "<group>";
+		};
+		A5DDFC001748F40700243DA0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A51269F8174A8B6D004DF10E /* First Use */,
+				A51269F9174A8B7C004DF10E /* Status Bar Icon */,
+				A5DDFC531749049E00243DA0 /* icon.icns */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -241,11 +268,8 @@
 		A5DFAAD917479BC800E66F87 /* AutoSync */ = {
 			isa = PBXGroup;
 			children = (
-				A5DFAAE517479BC800E66F87 /* AppDelegate.h */,
-				A5DFAAE617479BC800E66F87 /* AppDelegate.m */,
+				A51269FA174AEEA3004DF10E /* App Background */,
 				A5DFAAE817479BC800E66F87 /* MainMenu.xib */,
-				A5DFAAF61747B72100E66F87 /* iTunes */,
-				A5DFAAF91747FFC700E66F87 /* FSEvent */,
 				A5DFAADA17479BC800E66F87 /* Supporting Files */,
 				A5DDFC001748F40700243DA0 /* Resources */,
 			);
