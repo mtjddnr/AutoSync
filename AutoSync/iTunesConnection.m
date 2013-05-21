@@ -354,9 +354,8 @@
 
 
 
-- (void)buildPlaylistAndFolderFromLibTracks:(NSDictionary *)libTracksByLocation rootPath:(NSString *)rootPath {
+- (void)buildPlaylistFromLibTracks:(NSDictionary *)libTracksByLocation rootPath:(NSString *)rootPath {
     NSMutableDictionary *playlists = [NSMutableDictionary dictionary];
-    NSMutableArray *folders = [NSMutableArray array];
     
     [libTracksByLocation enumerateKeysAndObjectsUsingBlock:^(NSString *path, NSDictionary *track, BOOL *stop) {
         
@@ -365,12 +364,6 @@
         
         NSString *playlistPath = [path stringByDeletingLastPathComponent];
         playlistPath = [playlistPath substringFromIndex:[[rootPath stringByDeletingLastPathComponent] length] +1];
-        
-        NSString *folderPath = [playlistPath stringByDeletingLastPathComponent];
-        while ([folderPath length] > 0) {
-            if ([folders containsObject:folderPath] == NO) [folders addObject:folderPath];
-            folderPath = [folderPath stringByDeletingLastPathComponent];
-        }
         
         NSMutableArray *playlist = playlists[playlistPath];
         if (playlist == nil) {
@@ -381,8 +374,108 @@
         [playlist addObject:track];
     }];
     
-    _libFolders = folders;
     _libPlaylists = playlists;
+}
+
+- (void)buildFolders {
+    NSMutableArray *folders = [NSMutableArray array];
+    
+    NSArray *paths = [_libPlaylists allKeys];
+    [paths enumerateObjectsUsingBlock:^(NSString *path, NSUInteger idx, BOOL *stop) {
+        NSString *folderPath = [path stringByDeletingLastPathComponent];
+        while ([folderPath length] > 0) {
+            if ([folders containsObject:folderPath] == NO) [folders addObject:folderPath];
+            folderPath = [folderPath stringByDeletingLastPathComponent];
+        }
+    }];
+    
+    _libFolders = folders;
+}
+
+- (void)combinePlaylistsIfSeperatedDiscAlbums {
+   
+    NSMutableDictionary *parentGrouped = [NSMutableDictionary dictionary];
+    
+    NSArray *paths = [_libPlaylists allKeys];
+    [paths enumerateObjectsUsingBlock:^(NSString *path, NSUInteger idx, BOOL *stop) {
+        NSString *folderPath = [path stringByDeletingLastPathComponent];
+        NSString *name = [path lastPathComponent];
+        
+        NSMutableDictionary *group = parentGrouped[folderPath];
+        if (group == nil) {
+            group = [NSMutableDictionary dictionary];
+            parentGrouped[folderPath] = group;
+        }
+        
+        group[name] = path;
+    }];
+
+    NSArray *possiblePatterns = @[
+                                  @"cd*.[0-9]{1,2}",
+                                  @"disc*.[0-9]{1,2}"
+                                  ];
+    
+    [parentGrouped enumerateKeysAndObjectsUsingBlock:^(NSString *folderPath, NSMutableDictionary *group, BOOL *stop) {
+        
+        __block BOOL match = YES;
+        __block NSString *testPrefix = nil;
+        __block NSString *testPattern = nil; //cd or disc
+        [group enumerateKeysAndObjectsUsingBlock:^(NSString *name, NSString *path, BOOL *stop) {
+            if (testPattern == nil) {
+                [possiblePatterns enumerateObjectsUsingBlock:^(NSString *pattern, NSUInteger idx, BOOL *stop) {
+                    NSRange r = [name rangeOfString:pattern options:NSRegularExpressionSearch | NSCaseInsensitiveSearch];
+                    if (r.location != NSNotFound) {
+                        testPattern = pattern;
+                        *stop = YES;
+                    }
+                }];
+                if (testPattern == nil) {
+                    *stop = YES;
+                    match = NO;
+                    return;
+                }
+                
+                NSRange range = [name rangeOfString:testPattern options:NSRegularExpressionSearch | NSCaseInsensitiveSearch];
+                
+                testPrefix = [name substringWithRange:NSMakeRange(0, range.location)];
+                
+            } else {
+                NSRange range = [name rangeOfString:testPattern options:NSRegularExpressionSearch | NSCaseInsensitiveSearch];
+                if (range.location == NSNotFound) {
+                    match = NO;
+                    *stop = YES;
+                    return;
+                }
+                NSString *prefix = [name substringWithRange:NSMakeRange(0, range.location)];
+                
+                if ([prefix isEqualToString:testPrefix] == NO) {
+                    match = NO;
+                    *stop = YES;
+                    return;
+                }
+            }
+        }];
+        
+        if (match) {            
+            //folderPath -> new Playlist
+            NSMutableArray *newPlaylist = [NSMutableArray array];
+            [group enumerateKeysAndObjectsUsingBlock:^(NSString *name, NSString *path, BOOL *stop) {
+                NSMutableArray *playlist = _libPlaylists[path];
+                [newPlaylist addObjectsFromArray:playlist];
+                [_libPlaylists removeObjectForKey:path];
+            }];
+            
+            if (_libPlaylists[folderPath] != nil) {
+                NSMutableArray *l = _libPlaylists[folderPath];
+                [newPlaylist addObjectsFromArray:l];
+            }
+            
+            _libPlaylists[folderPath] = newPlaylist;
+            
+        }
+        
+    }];
+    
 }
 
 
@@ -422,7 +515,7 @@
     NSMutableArray *toDelete = [NSMutableArray array];
     [_iTunesUserPlaylists enumerateKeysAndObjectsUsingBlock:^(NSString *path, iTunesPlaylist *playlist, BOOL *stop) {
         if ([playlists containsObject:path] == NO) {
-            NSLog(@"Delete: %@", path);
+            //NSLog(@"Delete: %@", path);
             [toDelete addObject:path];
             [playlist delete];
             if (_onDeletePlaylistEvent) {
@@ -435,7 +528,7 @@
     toDelete = [NSMutableArray array];
     [_iTunesFolders enumerateKeysAndObjectsUsingBlock:^(NSString *path, iTunesPlaylist *folder, BOOL *stop) {
         if ([folders containsObject:path] == NO) {
-            NSLog(@"Delete: %@", path);
+            //NSLog(@"Delete: %@", path);
             [toDelete addObject:path];
             [folder delete];
             if (_onDeletePlaylistEvent) {
@@ -464,7 +557,7 @@
                 
                 _iTunesFolders[buildPath] = playlist;
                 iTunesFolder = playlist;
-                NSLog(@"add %@", buildPath);
+                //NSLog(@"add %@", buildPath);
                 if (_onAddPlaylistEvent) {
                     _onAddPlaylistEvent(buildPath);
                 }
@@ -491,7 +584,7 @@
             _iTunesUserPlaylists[path] = playlist;
             //userPlaylist = playlist;
             
-            NSLog(@"add %@", path);
+            //NSLog(@"add %@", path);
             
             if (_onAddPlaylistEvent) {
                 _onAddPlaylistEvent(path);
@@ -569,13 +662,13 @@
             if (_onOtherEvent) {
                 _onOtherEvent([NSString stringWithFormat:@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name]);
             }
-            NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
+            //NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
             //}];
         } else if (deleteCount + deleteDupCount + addCount > 0) {
             if (_onOtherEvent) {
                 _onOtherEvent([NSString stringWithFormat:@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name]);
             }
-            NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
+            //NSLog(@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name);
         }
         
         //}];

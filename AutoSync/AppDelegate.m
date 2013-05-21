@@ -18,6 +18,7 @@
 #define SET_SYNCPLAYLISTS @"setting.SyncPlaylists"
 #define SET_LAUNCHONSTART @"setting.LaunchOnStart"
 #define SET_OTHERLOG @"setting.OtherLog"
+#define SET_COMBINE @"setting.CombineSeperated"
 #define LOGKEY @"Logs"
 
 @implementation AppDelegate {
@@ -222,6 +223,12 @@
 - (BOOL)settingOtherLog {
     return [[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG];
 }
+- (void)setSettingCombineSeperated:(BOOL)settingCombineSeperated {
+    [[NSUserDefaults standardUserDefaults] setBool:settingCombineSeperated forKey:SET_COMBINE];
+}
+- (BOOL)settingCombineSeperated {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:SET_COMBINE];
+}
 
 #pragma mark - Sync
 - (void)onFSEvent:(NSNotification *)noti {
@@ -243,6 +250,7 @@
     BOOL syncTrack = self.settingSyncTracks;
     BOOL syncDelete = self.settingSyncDelete;
     BOOL syncPlaylist = self.settingSyncPlaylists;
+    BOOL syncCombine = self.settingCombineSeperated;
     
     self.menuRecentDate.title = NSLocalizedString(@"동기화중...", @"");
     
@@ -355,7 +363,14 @@
         if (syncPlaylist) {
             [queue addOperationWithBlock:^{
                 onOtherEvent(@"Build Playlists");
-                [iTunes buildPlaylistAndFolderFromLibTracks:iTunes.libTracksByLocation rootPath:iTunes.rootPath];
+                [iTunes buildPlaylistFromLibTracks:iTunes.libTracksByLocation rootPath:iTunes.rootPath];
+                
+                if (syncCombine) {
+                    [iTunes combinePlaylistsIfSeperatedDiscAlbums];
+                }
+                
+                [iTunes buildFolders];
+                
                 onOtherEvent([NSString stringWithFormat:@"Done Build Playlists: %i Folders, %i Playlists", (int)[iTunes.libFolders count], (int)[iTunes.libPlaylists count]]);
             }];
             
@@ -500,6 +515,7 @@
                 self.checkBoxSyncPlaylist.state = self.settingSyncPlaylists ? 1 : 0;
                 self.checkBoxLaunchOnStart.state = self.settingLaunchOnStart ? 1 : 0;
                 self.checkBoxShowOtherLogs.state = self.settingOtherLog ? 1 : 0;
+                self.checkBoxCombineSeperated.state = self.settingCombineSeperated ? 1 : 0;
             }
             [self updateDoneButtonStatus];
         });
@@ -643,6 +659,7 @@
     self.settingSyncPlaylists = (self.checkBoxSyncPlaylist.state != 0);
     self.settingLaunchOnStart = (self.checkBoxLaunchOnStart.state != 0);
     self.settingOtherLog = (self.checkBoxShowOtherLogs.state != 0);
+    self.settingCombineSeperated = (self.checkBoxCombineSeperated.state != 0);
     
     [[NSUserDefaults standardUserDefaults] synchronize];
     
@@ -657,7 +674,6 @@
     [self resetSettings];
     
     [NSApp terminate:self];
-    //[[NSApplication sharedApplication] terminate];
 }
 - (void)resetSettings {
     NSArray *keys = @[ SET_LIBPATH,
@@ -667,6 +683,7 @@
                        SET_SYNCPLAYLISTS,
                        SET_LAUNCHONSTART,
                        SET_OTHERLOG,
+                       SET_COMBINE,
                        LOGKEY];
     
     NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];

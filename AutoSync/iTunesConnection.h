@@ -64,7 +64,10 @@
 @property (nonatomic) NSString *rootName;
 
 //트랙 파일 경로에서 필요한 폴더 및 재생 목록 명단을 준비
-- (void)buildPlaylistAndFolderFromLibTracks:(NSDictionary *)libTracksByLocation rootPath:(NSString *)rootPath;
+- (void)buildPlaylistFromLibTracks:(NSDictionary *)libTracksByLocation rootPath:(NSString *)rootPath;
+//만들어진 재생 목록 명단에서 디스크로 구분된 폴더를 합친다.
+- (void)combinePlaylistsIfSeperatedDiscAlbums;
+- (void)buildFolders;
 @property (nonatomic, readonly) NSMutableArray *libFolders;
 @property (nonatomic, readonly) NSMutableDictionary *libPlaylists;
 

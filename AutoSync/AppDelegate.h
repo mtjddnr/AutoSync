@@ -63,6 +63,7 @@
 
 @property (weak) IBOutlet NSButton *checkBoxLaunchOnStart;
 @property (weak) IBOutlet NSButton *checkBoxShowOtherLogs;
+@property (weak) IBOutlet NSButton *checkBoxCombineSeperated;
 
 - (IBAction)onChangeCheck:(id)sender;
 
@@ -83,5 +84,6 @@
 @property (nonatomic) BOOL settingSyncDelete;
 @property (nonatomic) BOOL settingLaunchOnStart;
 @property (nonatomic) BOOL settingOtherLog;
+@property (nonatomic) BOOL settingCombineSeperated;
 
 @end
