@@ -10,7 +10,9 @@
 #import "iTunesConnection.h"
 #import "FSEventNotificationCenter.h"
 
-#define ROOTPATH @"rootPath"
+
+#define SET_LIBPATH @"setting.LibPath"
+#define SET_ROOTPATH @"setting.RootPath"
 #define SET_SYNCTRACKS @"setting.SyncTracks"
 #define SET_SYNCDELETEMISSINGFILE @"setting.SyncDeleteMissingFile"
 #define SET_SYNCPLAYLISTS @"setting.SyncPlaylists"
@@ -30,170 +32,234 @@
     BOOL _statusAnimating;
     NSInteger _statusIndex;
     
-    BOOL _firstRootFolderReady;
+    BOOL _libraryFileReady;
+    BOOL _rootFolderReady;
 }
-
+#pragma mark - NSApplicationDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [self.labelAboutVersion setStringValue:[[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"]];
     
-    self.rootPath = [[NSUserDefaults standardUserDefaults] stringForKey:ROOTPATH];
-    if (self.rootPath == nil) {
+    if (self.isFirstUse) {
+        [self resetSettings];
         [self firstUse];
     } else {
-        [self setupApplication];
+        [self setupApplication:YES];
     }
 }
-- (void)setupApplication {
-    assert(self.rootPath != nil);
-    
-    [self activateStatusMenu];
-    
-    self.menuMusicRoot.title = self.rootPath;
-    NSArray *logs = [[NSUserDefaults standardUserDefaults] objectForKey:LOGKEY];
-    if (logs != nil) {
-        _logs = [NSMutableArray arrayWithArray:logs];
-        
-        [self updateLogs];
-    }
 
-    self.menuSettingSyncTracks.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS] ? 1 : 0;
-    self.menuSettingSyncDeleteMissingFile.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE] ? 1 : 0;
-    self.menuSettingSyncPlaylists.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS] ? 1 : 0;
-    self.menuSettingLaunchOnStart.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_LAUNCHONSTART] ? 1 : 0;
-    self.menuSettingOtherLog.state = [[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG] ? 1 : 0;
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFSEvent:) name:FSEventDidReceiveNotification object:nil];
-    
+
+#pragma mark - Menu Events
+- (IBAction)onMenuSync:(id)sender {
     [self doSync];
 }
+- (IBAction)onSetting:(id)sender {
+    [self openSetting];
+}
+- (IBAction)onMenuAbout:(id)sender {
+    [self.windowAbout makeKeyAndOrderFront:nil];
+}
+- (IBAction)onQuit:(id)sender {
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [NSApp terminate:self];
+}
 
+
+#pragma mark - Status Bar Icon
 - (void)activateStatusMenu {
+    if (_statusItem != nil) return;
+    
     NSStatusBar *bar = [NSStatusBar systemStatusBar];
     
     _statusItem = [bar statusItemWithLength:NSVariableStatusItemLength];
     
-    //[_statusItem setTitle:NSLocalizedString(@"AutoSync", @"")];
     [_statusItem setImage:[NSImage imageNamed:@"StatusIcon"]];
     [_statusItem setHighlightMode:YES];
     [_statusItem setMenu:self.menu];
 }
-
-- (IBAction)onQuit:(id)sender {
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    exit(0);
+- (void)deactivateStatusMenu {
+    if (_statusItem != nil) {
+        [[NSStatusBar systemStatusBar] removeStatusItem:_statusItem];
+        _statusItem = nil;
+    }
+}
+#define StatusImageCount 18
+- (void)setStatusSyncing:(BOOL)syncing {
+    if (syncing && _statusAnimating == NO) {
+        _statusAnimating = YES;
+        _statusIndex = 0;
+        //_statusItem.title = NSLocalizedString(@"동기화중.",@"");
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+            while (_statusAnimating || (_statusAnimating == NO && _statusIndex != 0)) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    [_statusItem setImage:[NSImage imageNamed:[NSString stringWithFormat:@"StatusIcon_%02d", (int)_statusIndex]]];
+                    
+                    _statusIndex++;
+                    _statusIndex %= StatusImageCount;
+                });
+                [NSThread sleepForTimeInterval:0.08];
+            }
+            dispatch_sync(dispatch_get_main_queue(), ^{
+                //_statusItem.title = NSLocalizedString(@"AutoSync",@"");
+                [_statusItem setImage:[NSImage imageNamed:@"StatusIcon"]];
+            });
+        });
+    } else {
+        _statusAnimating = NO;
+    }
 }
 
-- (IBAction)onSetting:(id)sender {
-    NSOpenPanel *panel = [NSOpenPanel openPanel];
-    [panel setCanChooseDirectories:YES];
-    [panel setCanChooseFiles:NO];
+
+#pragma mark - Logs
+#define MAX_LOG_DISPLAY_COUNT 5
+#define MAX_LOG_COUNT 50
+- (void)log:(NSString *)message {
     
-    [panel beginWithCompletionHandler:^(NSInteger result){
-        if (result == NSFileHandlingPanelOKButton) {
-            NSString *path = [panel.URL path];
-            
-            NSFileManager *fs = [NSFileManager defaultManager];
-            BOOL isDir = NO;
-            if ([fs fileExistsAtPath:path isDirectory:&isDir] && isDir) {
-                self.rootPath = path;
-                self.menuMusicRoot.title = self.rootPath;
-                [[NSUserDefaults standardUserDefaults] setObject:self.rootPath forKey:ROOTPATH];
-            } else {
-                NSAlert *alert = [NSAlert alertWithMessageText:@"폴더가 아닙니다." defaultButton:@"확인" alternateButton:nil otherButton:nil informativeTextWithFormat:@""];
-                [alert runModal];
+    NSArray *logs = [[NSUserDefaults standardUserDefaults] objectForKey:LOGKEY];
+    if (logs != nil) {
+        _logs = [NSMutableArray arrayWithArray:logs];
+    } else {
+        _logs = [[NSMutableArray alloc] initWithCapacity:MAX_LOG_COUNT];
+    }
+    
+    [_logs insertObject:message atIndex:0];
+    
+    if ([_logs count] > MAX_LOG_COUNT) {
+        [_logs removeObjectsInRange:NSMakeRange(MAX_LOG_COUNT, [_logs count] - MAX_LOG_COUNT)];
+    }
+    [self updateLogs];
+}
+- (void)updateLogs {
+    
+    BOOL moreHidden = ([_logs count] <= MAX_LOG_DISPLAY_COUNT);
+    
+    [self.menuLogEndSeparator setHidden:([_logs count] == 0)];
+    [self.menuLogMore setHidden:moreHidden];
+    //Display Log
+    NSInteger seperatorIndex = [self.menu indexOfItem:self.menuLogSeparator];
+    __block NSInteger endIndex = [self.menu indexOfItem:self.menuLogMore];
+    
+    [_logs enumerateObjectsUsingBlock:^(NSString *message, NSUInteger idx, BOOL *stop) {
+        if (idx < MAX_LOG_DISPLAY_COUNT) {
+            NSInteger index = seperatorIndex + idx + 1;
+            if (index >= endIndex) {
+                NSMenuItem *newMenuItem = [[NSMenuItem alloc] init];
+                [self.menu insertItem:newMenuItem atIndex:index];
+                endIndex++;
             }
+            NSMenuItem *menuItem = [self.menu itemAtIndex:index];
+            [menuItem setEnabled:NO];
+            menuItem.title = message;
+        } else {
+            NSInteger index = idx - MAX_LOG_DISPLAY_COUNT;
+            if (index >= [self.menuLogMoreMenu numberOfItems]) {
+                NSMenuItem *newMenuItem = [[NSMenuItem alloc] init];
+                [self.menuLogMoreMenu addItem:newMenuItem];
+            }
+            NSMenuItem *menuItem = [self.menuLogMoreMenu itemAtIndex:index];
+            [menuItem setEnabled:NO];
+            menuItem.title = message;
         }
     }];
-}
-
-- (IBAction)onSettingSyncTracks:(id)sender {
-    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS];
-    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_SYNCTRACKS];
-    self.menuSettingSyncTracks.state = newValue ? 1 : 0;
-}
-
-- (IBAction)onSettingSyncDeleteMissingFile:(id)sender {
-    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE];
-    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_SYNCDELETEMISSINGFILE];
-    self.menuSettingSyncDeleteMissingFile.state = newValue ? 1 : 0;
-}
-
-- (IBAction)onSettingLaunchOnStart:(id)sender {
-    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_LAUNCHONSTART];
-    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_LAUNCHONSTART];
-    self.menuSettingLaunchOnStart.state = newValue ? 1 : 0;
     
-    if (newValue) {
-        [[NSApplication sharedApplication] enableRelaunchOnLogin];
-    } else {
-        [[NSApplication sharedApplication] disableRelaunchOnLogin];
-    }
-}
-
-- (IBAction)onSettingOtherLog:(id)sender {
-    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG];
-    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_OTHERLOG];
-    self.menuSettingOtherLog.state = newValue ? 1 : 0;
-}
-
-- (IBAction)onSettingSyncPlaylists:(id)sender {
-    BOOL newValue = ![[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS];
-    [[NSUserDefaults standardUserDefaults] setBool:newValue forKey:SET_SYNCPLAYLISTS];
-    self.menuSettingSyncPlaylists.state = newValue ? 1 : 0;
+    [[NSUserDefaults standardUserDefaults] setObject:_logs forKey:LOGKEY];
 }
 
 
+#pragma mark - Properties
+- (BOOL)isFirstUse {
+    return self.libPath == nil;
+}
+- (void)setLibPath:(NSString *)libPath {
+    [[NSUserDefaults standardUserDefaults] setObject:libPath forKey:SET_LIBPATH];
+}
+- (NSString *)libPath {
+    return [[NSUserDefaults standardUserDefaults] stringForKey:SET_LIBPATH];
+}
 - (void)setRootPath:(NSString *)rootPath {
-    if (_rootPath != nil) {
-        [[FSEventNotificationCenter sharedCenter] removePath:_rootPath];
+    if (self.rootPath != nil) {
+        [[FSEventNotificationCenter sharedCenter] removePath:self.rootPath];
     }
-    _rootPath = rootPath;
-    if (_rootPath != nil) {
-        [[FSEventNotificationCenter sharedCenter] addPath:_rootPath];
+    [[NSUserDefaults standardUserDefaults] setObject:rootPath forKey:SET_ROOTPATH];
+    if (rootPath != nil) {
+        [[FSEventNotificationCenter sharedCenter] addPath:rootPath];
     }
 }
+- (NSString *)rootPath {
+    return [[NSUserDefaults standardUserDefaults] stringForKey:SET_ROOTPATH];
+}
+- (void)setSettingSyncTracks:(BOOL)settingSyncTracks {
+    [[NSUserDefaults standardUserDefaults] setBool:settingSyncTracks forKey:SET_SYNCTRACKS];
+}
+- (BOOL)settingSyncTracks {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS];
+}
+- (void)setSettingSyncDelete:(BOOL)settingSyncDelete {
+    [[NSUserDefaults standardUserDefaults] setBool:settingSyncDelete forKey:SET_SYNCDELETEMISSINGFILE];
+}
+- (BOOL)settingSyncDelete {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE];
+}
+- (void)setSettingSyncPlaylists:(BOOL)settingSyncPlaylists {
+    [[NSUserDefaults standardUserDefaults] setBool:settingSyncPlaylists forKey:SET_SYNCPLAYLISTS];
+}
+- (BOOL)settingSyncPlaylists {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS];
+}
+- (void)setSettingLaunchOnStart:(BOOL)settingLaunchOnStart {
+    [NSApp disableRelaunchOnLogin];
+    if (settingLaunchOnStart) {
+        [NSApp enableRelaunchOnLogin];
+    }
+    [[NSUserDefaults standardUserDefaults] setBool:settingLaunchOnStart forKey:SET_LAUNCHONSTART];
+}
+- (BOOL)settingLaunchOnStart {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:SET_LAUNCHONSTART];
+}
+- (void)setSettingOtherLog:(BOOL)settingOtherLog {
+    [[NSUserDefaults standardUserDefaults] setBool:settingOtherLog forKey:SET_OTHERLOG];
+}
+- (BOOL)settingOtherLog {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG];
+}
 
+#pragma mark - Sync
 - (void)onFSEvent:(NSNotification *)noti {
     NSArray *eventPaths = noti.userInfo[FSEventDidReceiveNotificationEventPathsKey];
-    NSLog(@"%@", eventPaths);
+    NSLog(@"Root Folder Modified Notification: %@", eventPaths);
     _needSync = YES;
     [self doSync];
 }
-
 - (void)doSync {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS] == NO
-        && [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS] == NO
-        && [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE] == NO) return;
-    if (_rootPath == nil) return;
+    if (self.settingSyncTracks == NO && self.settingSyncPlaylists == NO && self.settingSyncDelete == NO) return;
+    if (self.rootPath == nil) return;
     
     if (_syncing) return;
     _syncing = YES;
     _needSync = NO;
     
-    [self setStatus:YES];
+    [self setEnabledWhileSync:NO];
     
-    //[self.menuSetting setEnabled:NO];
-    [self.menuSettingChangePath setEnabled:NO];
-    [self.menuSync setHidden:YES];
-    
-    BOOL syncTrack = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCTRACKS];
-    BOOL syncDelete = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCDELETEMISSINGFILE];
-    BOOL syncPlaylist = [[NSUserDefaults standardUserDefaults] boolForKey:SET_SYNCPLAYLISTS];
+    BOOL syncTrack = self.settingSyncTracks;
+    BOOL syncDelete = self.settingSyncDelete;
+    BOOL syncPlaylist = self.settingSyncPlaylists;
     
     self.menuRecentDate.title = NSLocalizedString(@"동기화중...", @"");
+    
+    NSString *libPath = self.libPath;
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         
         iTunesConnection *iTunes = [[iTunesConnection alloc] init];
         iTunes.onAddTrackEvent = ^(NSString *filePath) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                NSString *path = [filePath substringFromIndex:[_rootPath length]];
+                NSString *path = [filePath substringFromIndex:[self.rootPath length]];
                 [self log:[NSString stringWithFormat:NSLocalizedString(@"추가 %@", @""), path]];
             });
         };
         iTunes.onDeleteTrackEvent = ^(NSString *filePath) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                NSString *path = [filePath substringFromIndex:[_rootPath length]];
+                NSString *path = [filePath substringFromIndex:[self.rootPath length]];
                 [self log:[NSString stringWithFormat:NSLocalizedString(@"삭제 %@", @""), path]];
             });
         };
@@ -211,7 +277,7 @@
         void(^onOtherEvent)(NSString *message) = ^(NSString *message) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 NSLog(@"%@", message);
-                if ([[NSUserDefaults standardUserDefaults] boolForKey:SET_OTHERLOG]) {
+                if (self.settingOtherLog) {
                     [self log:message];
                 }
             });
@@ -227,15 +293,15 @@
         }];
         [queue addOperationWithBlock:^{
             onOtherEvent(@"Start Load Library Plist Tracks");
-            [iTunes loadLibraryFile];
+            [iTunes loadLibraryFileWithPath:libPath];
             onOtherEvent([NSString stringWithFormat:@"Done Load Library Plist Tracks: %i", (int)[iTunes libTrackCount]]);
         }];
         
         [queue waitUntilAllOperationsAreFinished];
         if ([self breakIfNeedResync]) return;
         
-        iTunes.rootPath = _rootPath;
-        iTunes.rootName = [_rootPath lastPathComponent];
+        iTunes.rootPath = self.rootPath;
+        iTunes.rootName = [self.rootPath lastPathComponent];
         
         if (syncTrack) {
             [queue addOperationWithBlock:^{
@@ -274,7 +340,7 @@
                     [iTunes loadiTunesTracks];
                 }];
                 [queue addOperationWithBlock:^{
-                    [iTunes loadLibraryFile];
+                    [iTunes loadLibraryFileWithPath:libPath];
                 }];
                 
                 [queue waitUntilAllOperationsAreFinished];
@@ -310,12 +376,10 @@
             
         }
         onOtherEvent(@"Done");
-
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             _syncing = NO;
-            [self setStatus:NO];
-            //[self.menuSetting setEnabled:YES];
-            [self.menuSettingChangePath setEnabled:YES];
+            [self setEnabledWhileSync:YES];
             
             NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
             [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
@@ -325,7 +389,6 @@
             
             self.menuInfoSongs.title = [NSString stringWithFormat:NSLocalizedString(@"%i 곡", @""), (int)iTunes.libTrackCount];
             self.menuInfoPlaylists.title = [NSString stringWithFormat:NSLocalizedString(@"%i 목록", @""), (int)[[iTunes.libPlaylists allKeys] count]];
-            [self.menuSync setHidden:NO];
             
             if (_needSync) {
                 [self doSync];
@@ -334,7 +397,6 @@
         
     });
 }
-
 - (BOOL)breakIfNeedResync {
     if (_needSync == NO) return NO;
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -343,110 +405,157 @@
     });
     return YES;
 }
-
-#define MAX_LOG_DISPLAY_COUNT 5
-#define MAX_LOG_COUNT 50
-- (void)log:(NSString *)message {
-    
-    if (_logs == nil) _logs = [[NSMutableArray alloc] initWithCapacity:MAX_LOG_COUNT];
-    
-    
-    [_logs insertObject:message atIndex:0];
-    
-    if ([_logs count] > MAX_LOG_COUNT) {
-        [_logs removeObjectsInRange:NSMakeRange(MAX_LOG_COUNT, [_logs count] - MAX_LOG_COUNT)];
-    }
-    [self updateLogs];
-}
-- (void)updateLogs {
-
-    BOOL moreHidden = ([_logs count] <= MAX_LOG_DISPLAY_COUNT);
-    
-    [self.menuLogEndSeparator setHidden:([_logs count] == 0)];
-    [self.menuLogMore setHidden:moreHidden];
-    //Display Log
-    NSInteger seperatorIndex = [self.menu indexOfItem:self.menuLogSeparator];
-    __block NSInteger endIndex = [self.menu indexOfItem:self.menuLogMore];
-    
-    [_logs enumerateObjectsUsingBlock:^(NSString *message, NSUInteger idx, BOOL *stop) {
-        if (idx < MAX_LOG_DISPLAY_COUNT) {
-            NSInteger index = seperatorIndex + idx + 1;
-            if (index >= endIndex) {
-                NSMenuItem *newMenuItem = [[NSMenuItem alloc] init];
-                [self.menu insertItem:newMenuItem atIndex:index];
-                endIndex++;
-            }
-            NSMenuItem *menuItem = [self.menu itemAtIndex:index];
-            [menuItem setEnabled:NO];
-            menuItem.title = message;
-        } else {
-            NSInteger index = idx - MAX_LOG_DISPLAY_COUNT;
-            if (index >= [self.menuLogMoreMenu numberOfItems]) {
-                NSMenuItem *newMenuItem = [[NSMenuItem alloc] init];
-                [self.menuLogMoreMenu addItem:newMenuItem];
-            }
-            NSMenuItem *menuItem = [self.menuLogMoreMenu itemAtIndex:index];
-            [menuItem setEnabled:NO];
-            menuItem.title = message;
-        }
-    }];
-    
-    [[NSUserDefaults standardUserDefaults] setObject:_logs forKey:LOGKEY];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-- (IBAction)onMenuSync:(id)sender {
-    [self doSync];
-}
-
-- (IBAction)onMenuAbout:(id)sender {
-    [self.windowAbout makeKeyAndOrderFront:nil];
-}
-
-#define StatusImageCount 18
-- (void)setStatus:(BOOL)syncing {
-    
-    if (syncing) {
-        _statusAnimating = YES;
-        _statusIndex = 0;
-        //_statusItem.title = NSLocalizedString(@"동기화중.",@"");
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-            while (_statusAnimating || (_statusAnimating == NO && _statusIndex != 0)) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    
-                    [_statusItem setImage:[NSImage imageNamed:[NSString stringWithFormat:@"StatusIcon_%02d", (int)_statusIndex]]];
-                    
-                    _statusIndex++;
-                    _statusIndex %= StatusImageCount;
-                });
-                [NSThread sleepForTimeInterval:0.08];
-            }
-            dispatch_sync(dispatch_get_main_queue(), ^{
-                //_statusItem.title = NSLocalizedString(@"AutoSync",@"");
-                [_statusItem setImage:[NSImage imageNamed:@"StatusIcon"]];
-            });
-        });
+- (void)setEnabledWhileSync:(BOOL)enabled {
+    if (enabled == NO) {
+        [self.menuSync setHidden:YES];
+        [self setStatusSyncing:YES];
+        [self.menuSetting setEnabled:NO];
     } else {
-        _statusAnimating = NO;
+        [self.menuSync setHidden:NO];
+        [self setStatusSyncing:NO];
+        [self.menuSetting setEnabled:YES];
     }
 }
 
+
+#pragma mark - Manage Sync App
+- (void)setupApplication:(BOOL)needSyncNow {
+    assert(self.rootPath != nil);
+    
+    [self activateStatusMenu];
+    
+    self.menuMusicRoot.title = self.rootPath;
+    [self updateLogs];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFSEvent:) name:FSEventDidReceiveNotification object:nil];
+    
+    if (needSyncNow) {
+        [self doSync];
+    }
+}
 - (void)firstUse {
-    [self.windowFirstUse makeKeyAndOrderFront:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowWillClose:) name:NSWindowWillCloseNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(settingWindowWillClose:) name:NSWindowWillCloseNotification object:nil];
     
-    [self discoverMusicRoot];
-    
-    [self.buttonDone setEnabled:NO];
+    [self openSetting];
+}
+- (void)settingWindowWillClose:(NSNotification *)notification {
+    if (notification.object == self.windowSetting) {
+        [NSApp terminate:self];
+    }
 }
 
-- (void)discoverMusicRoot {
+#pragma mark - Setting
+- (void)openSetting {
+    _libraryFileReady = NO;
+    _rootFolderReady = NO;
+    
+    [self.settingTab selectTabViewItemAtIndex:0];
+    
+    [self.windowSetting makeKeyAndOrderFront:nil];
+    
+    [self.popUpButtonSelectMusicFolder setEnabled:NO];
+    
+    self.popUpMenuLibraryFile.title = NSLocalizedString(@"준비중...", @"");
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        if (self.libPath == nil) {
+            NSString *path = [iTunesConnection defaultLibraryFilePath];
+            if ([iTunesConnection isLibraryValid:path]) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.popUpMenuLibraryFile.title = path;
+                });
+                _libraryFileReady = YES;
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.popUpMenuLibraryFile.title = NSLocalizedString(@"파일 없음", @"");
+                });
+                _libraryFileReady = NO;
+            }
+        } else {
+            _libraryFileReady = YES;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.popUpMenuLibraryFile.title = self.libPath;
+            });
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.popUpButtonSelectMusicFolder setEnabled:_libraryFileReady];
+            
+            if (_libraryFileReady) {
+                if (self.rootPath == nil) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self discoverMusicRoot:self.popUpMenuLibraryFile.title];
+                    });
+                } else {
+                    _rootFolderReady = YES;
+                    self.popUpButtonMenuRootPath.title = self.rootPath;
+                }
+            }
+            
+            if (self.libPath != nil) {
+                self.checkBoxSyncFiles.state = self.settingSyncTracks ? 1 : 0;
+                self.checkBoxSyncDelete.state = self.settingSyncDelete ? 1 : 0;
+                self.checkBoxSyncPlaylist.state = self.settingSyncPlaylists ? 1 : 0;
+                self.checkBoxLaunchOnStart.state = self.settingLaunchOnStart ? 1 : 0;
+                self.checkBoxShowOtherLogs.state = self.settingOtherLog ? 1 : 0;
+            }
+            [self updateDoneButtonStatus];
+        });
+        
+    });
+    
+    
+    
+}
+
+#pragma mark Select Library File
+- (IBAction)onPopUpButtonMenuSelectOtherLibraryFile:(id)sender {
+    [self.popUpSelectLibraryFile selectItemAtIndex:0];
+    
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    [panel setCanChooseDirectories:NO];
+    [panel setCanChooseFiles:YES];
+    [panel setAllowedFileTypes:@[ @"plist" ]];
+    
+    [panel beginSheetModalForWindow:self.windowSetting
+                  completionHandler:^(NSInteger result) {
+    //[panel beginWithCompletionHandler:^(NSInteger result) {
+                      if (result == NSFileHandlingPanelOKButton) {
+                          NSString *path = [panel.URL path];
+                          
+                          NSFileManager *fs = [NSFileManager defaultManager];
+                          BOOL isDir = NO;
+                          if ([fs fileExistsAtPath:path isDirectory:&isDir] && isDir == NO
+                              && [iTunesConnection isLibraryValid:path]) {
+                              self.popUpMenuLibraryFile.title = path;
+                              _libraryFileReady = YES;
+                              
+                              if (self.rootPath == nil) {
+                                  [self discoverMusicRoot:path];
+                              } else {
+                                  _rootFolderReady = YES;
+                                  self.popUpButtonMenuRootPath.title = self.rootPath;
+                              }
+                              
+                          } else {
+                              NSAlert *alert = [NSAlert alertWithMessageText:@"iTunes 라이브러리 파일이 아닙니다." defaultButton:@"확인" alternateButton:nil otherButton:nil informativeTextWithFormat:@""];
+                              [alert runModal];
+                          }
+                      }
+                  }];
+}
+
+#pragma mark Select Root Folder
+- (void)discoverMusicRoot:(NSString *)libPath {
     self.popUpButtonMenuRootPath.title = NSLocalizedString(@"경로 찾는중...", @"");
-    [self.popUpButtonMenuSelectOtherRootPath setEnabled:NO];
+    [self.popUpButtonSelectMusicFolder setEnabled:NO];
+    [self.popUpSelectLibraryFile setEnabled:NO];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         
         iTunesConnection *iTunes = [[iTunesConnection alloc] init];
-        [iTunes loadLibraryFile];
+        [iTunes loadLibraryFileWithPath:libPath];
         
         NSArray *locations = [iTunes.libTracksByLocation allKeys];
         if ([locations count] > 0) {
@@ -458,21 +567,20 @@
             
             if (rootPath == nil) {
                 self.popUpButtonMenuRootPath.title = NSLocalizedString(@"경로를 찾을수 없습니다", @"");
-                _firstRootFolderReady = NO;
+                _rootFolderReady = NO;
             } else {
                 self.popUpButtonMenuRootPath.title = rootPath;
-                _firstRootFolderReady = YES;
+                _rootFolderReady = YES;
             }
-            [self.popUpButtonMenuSelectOtherRootPath setEnabled:YES];
+            [self.popUpButtonSelectMusicFolder setEnabled:YES];
+            [self.popUpSelectLibraryFile setEnabled:YES];
             [self updateDoneButtonStatus];
         });
         
     });
 }
 
-- (void)windowWillClose:(NSNotification *)notification {
-    exit(0);
-}
+
 - (IBAction)onPopUpButtonMenuSelectOtherRootPath:(id)sender {
     [self.popUpButtonSelectMusicFolder selectItemAtIndex:0];
     
@@ -480,7 +588,7 @@
     [panel setCanChooseDirectories:YES];
     [panel setCanChooseFiles:NO];
     
-    [panel beginSheetModalForWindow:self.windowFirstUse
+    [panel beginSheetModalForWindow:self.windowSetting
                   completionHandler:^(NSInteger result){
         if (result == NSFileHandlingPanelOKButton) {
             NSString *path = [panel.URL path];
@@ -488,7 +596,7 @@
             NSFileManager *fs = [NSFileManager defaultManager];
             BOOL isDir = NO;
             if ([fs fileExistsAtPath:path isDirectory:&isDir] && isDir) {
-                _firstRootFolderReady = YES;
+                _rootFolderReady = YES;
                 self.popUpButtonMenuRootPath.title = path;
             } else {
                 NSAlert *alert = [NSAlert alertWithMessageText:@"폴더가 아닙니다." defaultButton:@"확인" alternateButton:nil otherButton:nil informativeTextWithFormat:@""];
@@ -504,7 +612,7 @@
 }
 
 - (void)updateDoneButtonStatus {
-    if (_firstRootFolderReady == NO) {
+    if (_rootFolderReady == NO || _libraryFileReady == NO) {
         [self.buttonDone setEnabled:NO];
         return;
     }
@@ -521,25 +629,56 @@
 - (IBAction)onButtonDone:(id)sender {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
-    [self.windowFirstUse close];
+    [self.windowSetting close];
     
-    self.rootPath = self.popUpButtonMenuRootPath.title;
-    [[NSUserDefaults standardUserDefaults] setObject:self.rootPath forKey:ROOTPATH];
+    self.libPath = self.popUpMenuLibraryFile.title;
     
-    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncFiles.state != 0) forKey:SET_SYNCTRACKS];
-    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncDelete.state != 0) forKey:SET_SYNCDELETEMISSINGFILE];
-    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxSyncPlaylist.state != 0) forKey:SET_SYNCPLAYLISTS];
-    [[NSUserDefaults standardUserDefaults] setBool:(self.checkBoxLaunchOnStart.state != 0) forKey:SET_LAUNCHONSTART];
-
-    [NSApp disableRelaunchOnLogin];
-    if (self.checkBoxLaunchOnStart.state != 0) {
-        [[NSApplication sharedApplication] enableRelaunchOnLogin];
-    }
+    NSString *newPath = self.popUpButtonMenuRootPath.title;
+    
+    BOOL needSync = [self.rootPath isEqualToString:newPath] == NO;
+    self.rootPath = newPath;
+    
+    self.settingSyncTracks = (self.checkBoxSyncFiles.state != 0);
+    self.settingSyncDelete = (self.checkBoxSyncDelete.state != 0);
+    self.settingSyncPlaylists = (self.checkBoxSyncPlaylist.state != 0);
+    self.settingLaunchOnStart = (self.checkBoxLaunchOnStart.state != 0);
+    self.settingOtherLog = (self.checkBoxShowOtherLogs.state != 0);
     
     [[NSUserDefaults standardUserDefaults] synchronize];
     
-    [self setupApplication];
+    [self setupApplication:needSync];
 }
 
 
+
+#pragma mark - Debug
+
+- (void)resetApp {
+    [self resetSettings];
+    
+    [NSApp terminate:self];
+    //[[NSApplication sharedApplication] terminate];
+}
+- (void)resetSettings {
+    NSArray *keys = @[ SET_LIBPATH,
+                       SET_ROOTPATH,
+                       SET_SYNCTRACKS,
+                       SET_SYNCDELETEMISSINGFILE,
+                       SET_SYNCPLAYLISTS,
+                       SET_LAUNCHONSTART,
+                       SET_OTHERLOG,
+                       LOGKEY];
+    
+    NSUserDefaults *settings = [NSUserDefaults standardUserDefaults];
+    
+    [keys enumerateObjectsUsingBlock:^(NSString *key, NSUInteger idx, BOOL *stop) {
+        [settings removeObjectForKey:key];
+    }];
+    [settings synchronize];
+}
+
+
+- (IBAction)onButtonReset:(id)sender {
+    [self resetApp];
+}
 @end

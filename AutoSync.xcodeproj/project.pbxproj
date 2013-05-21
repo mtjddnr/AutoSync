@@ -14,6 +14,7 @@
 		A55277EA17498665006CFF54 /* Example2@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A55277E617498665006CFF54 /* Example2@2x.png */; };
 		A55277EB17498665006CFF54 /* Example3.png in Resources */ = {isa = PBXBuildFile; fileRef = A55277E717498665006CFF54 /* Example3.png */; };
 		A55277EC17498665006CFF54 /* Example3@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A55277E817498665006CFF54 /* Example3@2x.png */; };
+		A5947BC0174BA4F200C55FBE /* QuickLook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A5947BBF174BA4F200C55FBE /* QuickLook.framework */; };
 		A5DDFC021748F40700243DA0 /* StatusIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A5DDFC011748F40700243DA0 /* StatusIcon.png */; };
 		A5DDFC041748F49000243DA0 /* StatusIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A5DDFC031748F49000243DA0 /* StatusIcon@2x.png */; };
 		A5DDFC2B1748FE1500243DA0 /* StatusIcon_00.png in Resources */ = {isa = PBXBuildFile; fileRef = A5DDFC051748FE1500243DA0 /* StatusIcon_00.png */; };
@@ -75,8 +76,9 @@
 		A55277E617498665006CFF54 /* Example2@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Example2@2x.png"; sourceTree = "<group>"; };
 		A55277E717498665006CFF54 /* Example3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Example3.png; sourceTree = "<group>"; };
 		A55277E817498665006CFF54 /* Example3@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Example3@2x.png"; sourceTree = "<group>"; };
+		A5947BBF174BA4F200C55FBE /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
+		A5947BCA174BA9E800C55FBE /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A5DDFBF71748D7D600243DA0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		A5DDFBF81748D7E200243DA0 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		A5DDFC011748F40700243DA0 /* StatusIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusIcon.png; sourceTree = "<group>"; };
 		A5DDFC031748F49000243DA0 /* StatusIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "StatusIcon@2x.png"; sourceTree = "<group>"; };
 		A5DDFC051748FE1500243DA0 /* StatusIcon_00.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusIcon_00.png; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5947BC0174BA4F200C55FBE /* QuickLook.framework in Frameworks */,
 				A5DFAAF81747FC2400E66F87 /* CoreServices.framework in Frameworks */,
 				A5DFAAF41747B6F900E66F87 /* ScriptingBridge.framework in Frameworks */,
 				A5DFAAD417479BC800E66F87 /* Cocoa.framework in Frameworks */,
@@ -256,6 +259,7 @@
 		A5DFAAD217479BC800E66F87 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A5947BBF174BA4F200C55FBE /* QuickLook.framework */,
 				A5DFAAF71747FC2400E66F87 /* CoreServices.framework */,
 				A5DFAAD617479BC800E66F87 /* AppKit.framework */,
 				A5DFAAD817479BC800E66F87 /* Foundation.framework */,
@@ -455,8 +459,8 @@
 		A5DFAAE817479BC800E66F87 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				A5DDFBF81748D7E200243DA0 /* en */,
 				A5E61064174995F20092BE1A /* ko */,
+				A5947BCA174BA9E800C55FBE /* en */,
 			);
 			name = MainMenu.xib;
 			sourceTree = "<group>";
@@ -530,6 +534,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AutoSync/AutoSync-Prefix.pch";
 				INFOPLIST_FILE = "AutoSync/AutoSync-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -542,6 +547,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AutoSync/AutoSync-Prefix.pch";
 				INFOPLIST_FILE = "AutoSync/AutoSync-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

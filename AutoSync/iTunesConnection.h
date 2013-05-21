@@ -31,6 +31,8 @@
 
 //~/[User]/Music/iTunes/iTunes Music Library.xml에서 트랙 정보를 불러온다. 가끔 경로가 빠진다.
 //iTunes트랙 정보가 있으면 자동 recover Missing Location Tracks
++ (NSString *)defaultLibraryFilePath;
++ (BOOL)isLibraryValid:(NSString *)path;
 - (void)loadLibraryFile;
 - (void)loadLibraryFileWithPath:(NSString *)path;
 @property (nonatomic, readonly) NSDictionary *libTracks;

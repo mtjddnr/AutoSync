@@ -93,10 +93,25 @@
     [_libTracksByLocation removeObjectsForKeys:locations];
 }
 
-
++ (NSString *)defaultLibraryFilePath {
+    return [NSHomeDirectory() stringByAppendingPathComponent:@"Music/iTunes/iTunes Music Library.xml"];
+}
++ (BOOL)isLibraryValid:(NSString *)path {
+    NSFileManager *fs = [NSFileManager defaultManager];
+    BOOL isDir = NO;
+    BOOL isExists = [fs fileExistsAtPath:path isDirectory:&isDir];
+    if (isExists == NO || isDir == YES) return NO;
+    
+    NSDictionary *lib = [NSDictionary dictionaryWithContentsOfFile:path];
+    
+    if (lib == nil) return NO;
+    
+    if (lib[@"Tracks"] == nil) return NO;
+    
+    return YES;
+}
 - (void)loadLibraryFile {
-    NSString *libPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Music/iTunes/iTunes Music Library.xml"];
-    [self loadLibraryFileWithPath:libPath];
+    [self loadLibraryFileWithPath:[iTunesConnection defaultLibraryFilePath]];
 }
 - (void)loadLibraryFileWithPath:(NSString *)path {
     NSFileManager *fs = [NSFileManager defaultManager];
