@@ -533,7 +533,7 @@
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setCanChooseDirectories:NO];
     [panel setCanChooseFiles:YES];
-    [panel setAllowedFileTypes:@[ @"plist" ]];
+    [panel setAllowedFileTypes:@[ @"xml", @"plist" ]];
     
     [panel beginSheetModalForWindow:self.windowSetting
                   completionHandler:^(NSInteger result) {

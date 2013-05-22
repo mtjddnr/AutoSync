@@ -292,13 +292,13 @@
 							<int key="NSvFlags">12</int>
 							<string key="NSFrame">{{146, 31}, {373, 424}}</string>
 							<reference key="NSSuperview" ref="109881159"/>
-							<reference key="NSNextKeyView" ref="191486103"/>
+							<reference key="NSNextKeyView" ref="396658529"/>
 							<string key="NSReuseIdentifierKey">_NS:9</string>
 							<array class="NSMutableArray" key="NSTabViewItems">
 								<object class="NSTabViewItem" id="703320812">
 									<string key="NSIdentifier">1</string>
 									<object class="NSView" key="NSView" id="396658529">
-										<nil key="NSNextResponder"/>
+										<reference key="NSNextResponder" ref="651521493"/>
 										<int key="NSvFlags">256</int>
 										<array class="NSMutableArray" key="NSSubviews">
 											<object class="NSTextField" id="360556596">
@@ -799,6 +799,7 @@
 											</object>
 										</array>
 										<string key="NSFrame">{{10, 33}, {353, 378}}</string>
+										<reference key="NSSuperview" ref="651521493"/>
 										<reference key="NSNextKeyView" ref="360556596"/>
 										<string key="NSReuseIdentifierKey">_NS:11</string>
 									</object>
@@ -809,7 +810,7 @@
 								<object class="NSTabViewItem" id="401914028">
 									<string key="NSIdentifier">2</string>
 									<object class="NSView" key="NSView" id="191486103">
-										<reference key="NSNextResponder" ref="651521493"/>
+										<nil key="NSNextResponder"/>
 										<int key="NSvFlags">256</int>
 										<array class="NSMutableArray" key="NSSubviews">
 											<object class="NSButton" id="120578228">
@@ -1068,7 +1069,6 @@
 											</object>
 										</array>
 										<string key="NSFrame">{{10, 33}, {353, 378}}</string>
-										<reference key="NSSuperview" ref="651521493"/>
 										<reference key="NSNextKeyView" ref="120578228"/>
 										<string key="NSReuseIdentifierKey">_NS:28</string>
 									</object>
@@ -1077,13 +1077,13 @@
 									<reference key="NSTabView" ref="651521493"/>
 								</object>
 							</array>
-							<reference key="NSSelectedTabViewItem" ref="401914028"/>
+							<reference key="NSSelectedTabViewItem" ref="703320812"/>
 							<reference key="NSFont" ref="85899785"/>
 							<int key="NSTvFlags">0</int>
 							<bool key="NSAllowTruncatedLabels">YES</bool>
 							<bool key="NSDrawsBackground">YES</bool>
 							<array class="NSMutableArray" key="NSSubviews">
-								<reference ref="191486103"/>
+								<reference ref="396658529"/>
 							</array>
 						</object>
 						<object class="NSButton" id="401428983">
