@@ -658,6 +658,15 @@
             assert(trackLocations != nil);
             assert(userPlaylist != nil);
             //[queue addOperationWithBlock:^{
+            
+            //파일 명으로 정렬
+            [trackLocations sortUsingComparator:^(NSURL *obj1, NSURL *obj2) {
+                NSString *name1 = [[obj1 path] lastPathComponent];
+                NSString *name2 = [[obj2 path] lastPathComponent];
+                return [name1 compare:name2];
+            }];
+            
+            
             [self.iTunes add:trackLocations to:userPlaylist];
             if (_onOtherEvent) {
                 _onOtherEvent([NSString stringWithFormat:@"Tracks: %02d(%02d Del, %02d Dup, %02d Add)\t: %@", (int)[tracks count], deleteCount, deleteDupCount, addCount, userPlaylist.name]);

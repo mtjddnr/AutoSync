@@ -445,6 +445,8 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onFSEvent:) name:FSEventDidReceiveNotification object:nil];
     
+    self.rootPath = self.rootPath;
+    
     if (needSyncNow) {
         [self doSync];
     }
