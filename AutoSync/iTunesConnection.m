@@ -661,8 +661,8 @@
             
             //파일 명으로 정렬
             [trackLocations sortUsingComparator:^(NSURL *obj1, NSURL *obj2) {
-                NSString *name1 = [[obj1 path] lastPathComponent];
-                NSString *name2 = [[obj2 path] lastPathComponent];
+                NSString *name1 = [obj1 path]; //[[obj1 path] lastPathComponent];
+                NSString *name2 = [obj2 path]; //[[obj2 path] lastPathComponent];
                 return [name1 compare:name2];
             }];
             
