@@ -30,3 +30,8 @@ AutoSync
 
 
 ! 아이튠즈 설정에서 "보관함에 추가시 iTunes Media 폴더에 파일 복사"는 체크 해제하는걸 추천합니다.
+
+
+
+다운로드
+http://sourceforge.net/projects/autosyncitunesformac/
