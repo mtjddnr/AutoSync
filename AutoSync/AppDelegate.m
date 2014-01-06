@@ -46,6 +46,9 @@
     } else {
         [self setupApplication:YES];
     }
+    
+    NSTableView *t = nil;
+    [t display];
 }
 
 

@@ -348,8 +348,8 @@
     
     NSString *rootName = [rootPath lastPathComponent];
     
-    _rootPath = rootPath;
-    _rootName = rootName;
+    //_rootPath = rootPath;
+    //_rootName = rootName;
 }
 
 
